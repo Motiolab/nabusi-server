@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS `wellness_ticket` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `center_id` bigint DEFAULT NULL,
+  `type` varchar(255) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `background_color` varchar(10) DEFAULT NULL,
+  `text_color` varchar(10) DEFAULT NULL,
+  `price` double DEFAULT NULL,
+  `limit_type` varchar(255) DEFAULT NULL,
+  `limit_cnt` int DEFAULT NULL,
+  `total_usable_cnt` int DEFAULT NULL,
+  `usable_date` int DEFAULT NULL,
+  `discount_value` int DEFAULT NULL,
+  `wellness_class_id_list` varchar(2000) DEFAULT NULL,
+  `sales_price` int DEFAULT NULL,
+  `is_delete` bit(1) DEFAULT FALSE,
+  `created_date` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `last_updated_date` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `UK_name_center_id` (`name`, `center_id`)
+);

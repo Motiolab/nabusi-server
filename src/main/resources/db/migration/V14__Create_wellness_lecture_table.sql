@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS `wellness_lecture` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(2000) DEFAULT NULL,
+  `center_id` bigint DEFAULT NULL,
+  `max_reservation_cnt` int DEFAULT NULL,
+  `register_id` bigint DEFAULT NULL,
+  `room` varchar(255) DEFAULT NULL,
+  `lecture_image_url_list` varchar(2000) DEFAULT NULL,
+  `price` double DEFAULT NULL,
+  `wellness_class_id` bigint DEFAULT NULL,
+  `teacher_id` bigint DEFAULT NULL,
+  `wellness_lecture_type_id` bigint DEFAULT NULL,
+  `start_date_time` datetime(6) DEFAULT NULL,
+  `end_date_time` datetime(6) DEFAULT NULL,
+  `is_delete` bit(1) DEFAULT NULL,
+  `wellness_ticket_management_id_list` varchar(255) DEFAULT NULL,
+  `last_updated_date` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  `created_date` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`)
+);

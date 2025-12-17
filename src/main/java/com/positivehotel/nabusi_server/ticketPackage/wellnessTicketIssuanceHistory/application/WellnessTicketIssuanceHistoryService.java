@@ -1,0 +1,7 @@
+package com.positivehotel.nabusi_server.ticketPackage.wellnessTicketIssuanceHistory.application;
+
+import com.positivehotel.nabusi_server.ticketPackage.wellnessTicketIssuanceHistory.application.dto.WellnessTicketIssuanceHistoryDto;
+
+public interface WellnessTicketIssuanceHistoryService {
+    void create(WellnessTicketIssuanceHistoryDto wellnessTicketIssuanceHistoryDto);
+}

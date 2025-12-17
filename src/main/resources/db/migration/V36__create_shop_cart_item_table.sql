@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS shop_cart_item (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    shop_cart_id BIGINT NOT NULL,
+    shop_product_id BIGINT NOT NULL,
+    shop_product_variant_id BIGINT NOT NULL,
+    quantity INTEGER NOT NULL,
+    last_updated_date DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    created_date DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+);

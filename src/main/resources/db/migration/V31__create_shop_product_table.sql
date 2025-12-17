@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS shop_product (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(255),
+    model_name VARCHAR(255),
+    price INTEGER,
+    discount_price INTEGER,
+    display VARCHAR(255),
+    mobile_description TEXT,
+    payment_info TEXT,
+    shipping_info TEXT,
+    exchange_info TEXT,
+    service_info TEXT,
+    selling VARCHAR(255),
+    simple_description VARCHAR(255),
+    summary_description VARCHAR(255),
+    list_image TEXT,
+    detail_image TEXT,
+    has_option VARCHAR(255),
+    sold_out VARCHAR(255),
+    idx INTEGER,
+    last_updated_date DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    created_date DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+);

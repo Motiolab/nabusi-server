@@ -1,0 +1,351 @@
+package com.positivehotel.nabusi_server.reservation.application;
+
+import com.positivehotel.nabusi_server.centerPackage.center.application.CenterService;
+import com.positivehotel.nabusi_server.centerPackage.center.application.dto.CenterDto;
+import com.positivehotel.nabusi_server.classPackage.wellnessLecture.application.WellnessLectureService;
+import com.positivehotel.nabusi_server.classPackage.wellnessLecture.application.dto.WellnessLectureDto;
+import com.positivehotel.nabusi_server.classPackage.wellnessLectureReview.application.WellnessLectureReviewService;
+import com.positivehotel.nabusi_server.classPackage.wellnessLectureReview.application.dto.WellnessLectureReviewDto;
+import com.positivehotel.nabusi_server.classPackage.wellnessLectureType.application.WellnessLectureTypeService;
+import com.positivehotel.nabusi_server.classPackage.wellnessLectureType.application.dto.WellnessLectureTypeDto;
+import com.positivehotel.nabusi_server.exception.customException.*;
+import com.positivehotel.nabusi_server.memberPackage.member.application.MemberService;
+import com.positivehotel.nabusi_server.memberPackage.memberMemo.application.MemberMemoService;
+import com.positivehotel.nabusi_server.reservation.application.dto.ReservationDto;
+import com.positivehotel.nabusi_server.reservation.application.dto.request.CancelReservationMobileRequestV1;
+import com.positivehotel.nabusi_server.reservation.application.dto.request.CreateReservationMobileRequestV1;
+import com.positivehotel.nabusi_server.reservation.application.dto.response.ReservationMobileDto;
+import com.positivehotel.nabusi_server.reservation.enums.ReservationStatus;
+import com.positivehotel.nabusi_server.teacher.application.TeacherService;
+import com.positivehotel.nabusi_server.teacher.application.dto.TeacherDto;
+import com.positivehotel.nabusi_server.ticketPackage.enums.CntChangedReason;
+import com.positivehotel.nabusi_server.ticketPackage.wellnessTicketIssuance.application.WellnessTicketIssuanceService;
+import com.positivehotel.nabusi_server.ticketPackage.wellnessTicketIssuance.application.dto.WellnessTicketIssuanceDto;
+import com.positivehotel.nabusi_server.ticketPackage.wellnessTicketIssuanceHistory.application.WellnessTicketIssuanceHistoryService;
+import com.positivehotel.nabusi_server.ticketPackage.wellnessTicketIssuanceHistory.application.dto.WellnessTicketIssuanceHistoryDto;
+import com.positivehotel.nabusi_server.ticketPackage.wellnessTicketManagement.application.WellnessTicketManagementService;
+import com.positivehotel.nabusi_server.ticketPackage.wellnessTicketManagement.application.dto.WellnessTicketManagementDto;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.ZonedDateTime;
+import java.time.temporal.WeekFields;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+
+@Service
+@RequiredArgsConstructor
+@Log
+public class ReservationMobileServiceImpl implements ReservationMobileService{
+    private final ReservationService reservationService;
+    private final MemberService memberService;
+    private final MemberMemoService memberMemoService;
+    private final WellnessTicketIssuanceService wellnessTicketIssuanceService;
+    private final WellnessLectureService wellnessLectureService;
+    private final WellnessTicketIssuanceHistoryService wellnessTicketIssuanceHistoryService;
+    private final WellnessTicketManagementService wellnessTicketManagementService;
+    private final WellnessLectureTypeService wellnessLectureTypeService;
+    private final TeacherService teacherService;
+    private final CenterService centerService;
+    private final WellnessLectureReviewService wellnessLectureReviewService;
+
+    @Transactional
+    @Override
+    public void createReservation(CreateReservationMobileRequestV1 createReservationMobileRequestV1) {
+        // todo 예약 정책에서 예약 가능한 시간인지 체크하는 로직 추가
+        final ReservationDto reservationDtoExist = reservationService.getByMemberIdAndWellnessLectureId(createReservationMobileRequestV1.getMemberId(), createReservationMobileRequestV1.getWellnessLectureId());
+        if(reservationDtoExist != null) {
+            throw new ExistsAlreadyException(ReservationDto.class, reservationDtoExist.getId());
+        }
+
+        final WellnessLectureDto wellnessLectureDto = wellnessLectureService.getById(createReservationMobileRequestV1.getWellnessLectureId());
+        if (wellnessLectureDto == null) throw new NotFoundException(WellnessLectureDto.class, createReservationMobileRequestV1.getWellnessLectureId());
+
+        checkWellnessLectureToReservation(wellnessLectureDto);
+        WellnessTicketIssuanceDto wellnessTicketIssuanceDto = null;
+        if (createReservationMobileRequestV1.getWellnessTicketIssuanceId() != null) {
+            wellnessTicketIssuanceDto = wellnessTicketIssuanceService.getById(createReservationMobileRequestV1.getWellnessTicketIssuanceId());
+            if (wellnessTicketIssuanceDto == null) {
+                throw new NotFoundException(WellnessTicketIssuanceDto.class, createReservationMobileRequestV1.getWellnessTicketIssuanceId());
+            }
+            checkWellnessTicketIssuanceToReservation(wellnessTicketIssuanceDto);
+            checkLimitWellnessTicketIssuanceToReservation(wellnessTicketIssuanceDto, wellnessLectureDto.getStartDateTime());
+
+            final WellnessTicketManagementDto wellnessTicketManagementDto = wellnessTicketManagementService.getByWellnessTicketIssuanceId(wellnessTicketIssuanceDto.getId());
+            if (wellnessTicketManagementDto == null) {
+                throw new NotFoundException(WellnessTicketManagementDto.class, wellnessTicketIssuanceDto.getId());
+            }
+            if(!wellnessLectureDto.getWellnessTicketManagementIdList().contains(wellnessTicketManagementDto.getId())){
+                throw new TicketNotLinkedException(WellnessTicketManagementDto.class, wellnessTicketIssuanceDto.getId());
+            }
+        }
+
+        final ReservationDto reservationDto = ReservationDto.builder()
+                .centerId(createReservationMobileRequestV1.getCenterId())
+                .memberId(createReservationMobileRequestV1.getMemberId())
+                .actionMemberId(createReservationMobileRequestV1.getActionMemberId())
+                .status(createReservationMobileRequestV1.getStatus())
+                .wellnessLectureId(createReservationMobileRequestV1.getWellnessLectureId())
+                .wellnessTicketIssuanceId(createReservationMobileRequestV1.getWellnessTicketIssuanceId())
+                .build();
+
+        final ReservationDto savedReservationDto = reservationService.create(reservationDto);
+
+        final WellnessTicketIssuanceHistoryDto wellnessTicketIssuanceHistoryDto = WellnessTicketIssuanceHistoryDto.builder()
+                .changedCnt(-1)
+                .wellnessLectureId(createReservationMobileRequestV1.getWellnessLectureId())
+                .reservationId(savedReservationDto.getId())
+                .actionMemberId(createReservationMobileRequestV1.getActionMemberId())
+                .wellnessTicketIssuanceId(createReservationMobileRequestV1.getWellnessTicketIssuanceId())
+                .reason(CntChangedReason.ADMIN_RESERVATION)
+                .build();
+        wellnessTicketIssuanceHistoryService.create(wellnessTicketIssuanceHistoryDto);
+
+        if (wellnessTicketIssuanceDto != null) {
+            wellnessTicketIssuanceDto.setRemainingCnt(wellnessTicketIssuanceDto.getRemainingCnt() - 1);
+            if ((wellnessTicketIssuanceDto.getType().equals("COUNT") && (wellnessTicketIssuanceDto.getRemainingCnt() <= 0)|| wellnessTicketIssuanceDto.getExpireDate().isBefore(ZonedDateTime.now()))) {
+                wellnessTicketIssuanceDto.setIsDelete(true);
+            }
+            wellnessTicketIssuanceService.update(wellnessTicketIssuanceDto);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void cancelReservation(CancelReservationMobileRequestV1 cancelReservationMobileRequestV1) {
+        // todo 예약 정책에서 예약취소 가능한 시간인지 체크하는 로직 추가
+        final ReservationDto reservationDto = reservationService.getById(cancelReservationMobileRequestV1.getReservationId());
+        if (reservationDto == null) throw new NotFoundException(ReservationDto.class, cancelReservationMobileRequestV1.getReservationId());
+
+        if (!reservationDto.getMemberId().equals(cancelReservationMobileRequestV1.getActionMemberId())) {
+            throw new RuntimeException("Member ID mismatch: The provided member ID does not match the reservation's member ID.");
+        }
+
+        reservationDto.setStatus(cancelReservationMobileRequestV1.getStatus());
+        final ReservationDto updatedReservationDto = reservationService.update(reservationDto);
+
+        final WellnessTicketIssuanceDto wellnessTicketIssuanceDto = wellnessTicketIssuanceService.getById(updatedReservationDto.getWellnessTicketIssuanceId());
+        if(wellnessTicketIssuanceDto == null) throw new NotFoundException(WellnessTicketIssuanceDto.class, updatedReservationDto.getWellnessTicketIssuanceId());
+
+        wellnessTicketIssuanceDto.setRemainingCnt(wellnessTicketIssuanceDto.getRemainingCnt() + 1);
+        if ((wellnessTicketIssuanceDto.getType().equals("COUNT") && (wellnessTicketIssuanceDto.getRemainingCnt() <= 0) || wellnessTicketIssuanceDto.getExpireDate().isBefore(ZonedDateTime.now()))) {
+            wellnessTicketIssuanceDto.setIsDelete(true);
+        } else {
+            wellnessTicketIssuanceDto.setIsDelete(false);
+        }
+        wellnessTicketIssuanceService.update(wellnessTicketIssuanceDto);
+
+        final WellnessTicketIssuanceHistoryDto wellnessTicketIssuanceHistoryDto = WellnessTicketIssuanceHistoryDto.builder()
+                .changedCnt(1)
+                .wellnessLectureId(updatedReservationDto.getWellnessLectureId())
+                .reservationId(updatedReservationDto.getId())
+                .actionMemberId(cancelReservationMobileRequestV1.getActionMemberId())
+                .wellnessTicketIssuanceId(updatedReservationDto.getWellnessTicketIssuanceId())
+                .reason(CntChangedReason.MEMBER_CANCELED_RESERVATION)
+                .build();
+        wellnessTicketIssuanceHistoryService.create(wellnessTicketIssuanceHistoryDto);
+    }
+
+    @Override
+    public List<ReservationMobileDto> getReservationList(Long memberId) {
+        final List<ReservationStatus> reservationStatusList = List.of(ReservationStatus.INAPP_RESERVATION, ReservationStatus.ADMIN_RESERVATION, ReservationStatus.ONSITE_RESERVATION);
+        final List<ReservationDto> reservationDtoList = reservationService.getAllByMemberIdAndStatusList(memberId, reservationStatusList);
+        final List<Long> wellnessLectureIdList = reservationDtoList.stream().map(ReservationDto::getWellnessLectureId).distinct().toList();
+        final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService.getAllByIdList(wellnessLectureIdList);
+        final List<Long> wellnessLectureTypeIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getWellnessLectureTypeId).distinct().toList();
+        final List<WellnessLectureTypeDto> wellnessLectureTypeDtoList = wellnessLectureTypeService.getAllByIdList(wellnessLectureTypeIdList);
+        final List<Long> teacherIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getTeacherId).distinct().toList();
+        final List<TeacherDto> teacherDtoList = teacherService.getAllByIdList(teacherIdList);
+        final List<Long> centerIdList = reservationDtoList.stream().map(ReservationDto::getCenterId).distinct().toList();
+        final List<CenterDto> centerDtoList = centerService.getAllByIdList(centerIdList);
+
+        return reservationDtoList
+                .stream()
+                .map(reservationDto -> {
+                    final WellnessLectureDto targetWellnessLectureDto = wellnessLectureDtoList
+                            .stream()
+                            .filter(wellnessLectureDto -> Objects.equals(wellnessLectureDto.getId(), reservationDto.getWellnessLectureId()))
+                            .findFirst()
+                            .orElseThrow();
+
+                    final WellnessLectureTypeDto targetWellnessLectureTypeDto = wellnessLectureTypeDtoList
+                            .stream()
+                            .filter(wellnessLectureTypeDto -> Objects.equals(wellnessLectureTypeDto.id(), targetWellnessLectureDto.getWellnessLectureTypeId()))
+                            .findFirst()
+                            .orElseThrow();
+
+                    final TeacherDto targetTeacherDto = teacherDtoList
+                            .stream()
+                            .filter(teacherDto -> Objects.equals(teacherDto.getId(), targetWellnessLectureDto.getTeacherId()))
+                            .findFirst()
+                            .orElseThrow();
+
+                    final CenterDto centerDto = centerDtoList
+                            .stream()
+                            .filter(center -> Objects.equals(center.getId(), reservationDto.getCenterId()))
+                            .findFirst()
+                            .orElseThrow();
+
+                    return ReservationMobileDto
+                            .builder()
+                            .reservationDto(reservationDto)
+                            .wellnessLectureDto(targetWellnessLectureDto)
+                            .wellnessLectureTypeDto(targetWellnessLectureTypeDto)
+                            .teacherDto(targetTeacherDto)
+                            .centerDto(centerDto)
+                            .build();
+                })
+                .toList();
+    }
+
+    @Override
+    public List<ReservationMobileDto> getReservationCheckInList(Long memberId) {
+        final List<ReservationStatus> reservationStatusList = List.of(ReservationStatus.CHECK_IN);
+        final List<ReservationDto> reservationDtoList = reservationService.getAllByMemberIdAndStatusList(memberId, reservationStatusList);
+        final List<Long> wellnessLectureIdList = reservationDtoList.stream().map(ReservationDto::getWellnessLectureId).distinct().toList();
+        final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService.getAllByIdList(wellnessLectureIdList);
+        final List<Long> wellnessLectureTypeIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getWellnessLectureTypeId).distinct().toList();
+        final List<WellnessLectureTypeDto> wellnessLectureTypeDtoList = wellnessLectureTypeService.getAllByIdList(wellnessLectureTypeIdList);
+        final List<Long> teacherIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getTeacherId).distinct().toList();
+        final List<TeacherDto> teacherDtoList = teacherService.getAllByIdList(teacherIdList);
+        final List<Long> centerIdList = reservationDtoList.stream().map(ReservationDto::getCenterId).distinct().toList();
+        final List<CenterDto> centerDtoList = centerService.getAllByIdList(centerIdList);
+        final List<WellnessLectureReviewDto> wellnessLectureReviewDto = wellnessLectureReviewService.getAllByMemberIdAndWellnessLectureIdList(memberId, wellnessLectureIdList);
+        final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService.getAllByWellnessLectureIdList(wellnessLectureIdList);
+
+        return reservationDtoList
+                .stream()
+                .map(reservationDto -> {
+                    final WellnessLectureDto targetWellnessLectureDto = wellnessLectureDtoList
+                            .stream()
+                            .filter(wellnessLectureDto -> Objects.equals(wellnessLectureDto.getId(), reservationDto.getWellnessLectureId()))
+                            .findFirst()
+                            .orElseThrow();
+
+                    final WellnessLectureTypeDto targetWellnessLectureTypeDto = wellnessLectureTypeDtoList
+                            .stream()
+                            .filter(wellnessLectureTypeDto -> Objects.equals(wellnessLectureTypeDto.id(), targetWellnessLectureDto.getWellnessLectureTypeId()))
+                            .findFirst()
+                            .orElseThrow();
+
+                    final TeacherDto targetTeacherDto = teacherDtoList
+                            .stream()
+                            .filter(teacherDto -> Objects.equals(teacherDto.getId(), targetWellnessLectureDto.getTeacherId()))
+                            .findFirst()
+                            .orElseThrow();
+
+                    final CenterDto centerDto = centerDtoList
+                            .stream()
+                            .filter(center -> Objects.equals(center.getId(), reservationDto.getCenterId()))
+                            .findFirst()
+                            .orElseThrow();
+
+                    final WellnessLectureReviewDto targetWellnessLectureReviewDto = wellnessLectureReviewDto
+                            .stream()
+                            .filter(wellnessLectureReviewDto1 -> Objects.equals(wellnessLectureReviewDto1.getWellnessLectureId(), reservationDto.getWellnessLectureId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    final List<WellnessLectureReviewDto> targetWellnessLectureReviewDtoList = wellnessLectureReviewDtoList
+                            .stream()
+                            .filter(wellnessLectureReviewDto1 -> wellnessLectureReviewDto1.getWellnessClassId().equals(targetWellnessLectureDto.getWellnessClassId()))
+                            .toList();
+
+                    return ReservationMobileDto
+                            .builder()
+                            .reservationDto(reservationDto)
+                            .wellnessLectureDto(targetWellnessLectureDto)
+                            .wellnessLectureTypeDto(targetWellnessLectureTypeDto)
+                            .teacherDto(targetTeacherDto)
+                            .centerDto(centerDto)
+                            .myWellnessLectureReviewDto(targetWellnessLectureReviewDto)
+                            .wellnessLectureReviewDtoList(targetWellnessLectureReviewDtoList)
+                            .build();
+                })
+                .toList();
+    }
+
+
+    private void checkLimitWellnessTicketIssuanceToReservation(WellnessTicketIssuanceDto wellnessTicketIssuanceDto, ZonedDateTime lectureStartTime){
+        if (wellnessTicketIssuanceDto.getLimitType().equals("NONE")) {
+            return;
+        }
+
+        final List<ReservationDto> reservationDtoList = reservationService.getAllByWellnessTicketIssuanceId(wellnessTicketIssuanceDto.getId())
+                .stream()
+                .filter(reservationDto -> !(reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION) || reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)))
+                .toList();
+
+        final List<Long> wellnessLectureIdList = reservationDtoList.stream().map(ReservationDto::getWellnessLectureId).toList();
+        final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService.getAllByIdList(wellnessLectureIdList);
+
+        List<ReservationDto> filteredReservations = switch (wellnessTicketIssuanceDto.getLimitType()) {
+            case "WEEK" -> reservationDtoList.stream()
+                    .filter(reservation -> {
+                        final WellnessLectureDto targetWellnessLectureDto = wellnessLectureDtoList.stream().filter(wellnessLectureDto -> wellnessLectureDto.getId().equals(reservation.getWellnessLectureId())).findFirst().orElseThrow(() -> new RuntimeException("Error WellnessLecture is Not Available. id:" + reservation.getWellnessLectureId()));
+                        return isSameWeek(targetWellnessLectureDto.getStartDateTime(), lectureStartTime);
+                    }).toList();
+            case "MONTH" -> reservationDtoList.stream()
+                    .filter(reservation -> {
+                        final WellnessLectureDto targetWellnessLectureDto = wellnessLectureDtoList.stream().filter(wellnessLectureDto -> wellnessLectureDto.getId().equals(reservation.getWellnessLectureId())).findFirst().orElseThrow(() -> new RuntimeException("Error WellnessLecture is Not Available. id:" + reservation.getWellnessLectureId()));
+                        return isSameMonth(targetWellnessLectureDto.getStartDateTime(), lectureStartTime);
+                    }).toList();
+            default -> List.of();
+        };
+
+        if (filteredReservations.size() >= wellnessTicketIssuanceDto.getLimitCnt()) {
+            throw new TicketInvalidException(WellnessTicketIssuanceDto.class, wellnessTicketIssuanceDto.getId());
+        }
+    }
+
+    public Boolean isSameMonth(ZonedDateTime startDateTime, ZonedDateTime targetDate) {
+        return startDateTime.getYear() == targetDate.getYear() &&
+                startDateTime.getMonthValue() == targetDate.getMonthValue();
+    }
+
+    public Boolean isSameWeek(ZonedDateTime startDateTime, ZonedDateTime targetDate) {
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+
+        int startWeek = startDateTime.get(weekFields.weekOfWeekBasedYear());
+        int currentWeek = targetDate.get(weekFields.weekOfWeekBasedYear());
+
+        int startYear = startDateTime.getYear();
+        int currentYear = targetDate.getYear();
+
+        return startYear == currentYear && startWeek == currentWeek;
+    }
+
+    private void checkWellnessLectureToReservation(WellnessLectureDto wellnessLectureDto) {
+        if(wellnessLectureDto.getIsDelete()) {
+            throw new DeletedAlreadyException(WellnessTicketIssuanceDto.class, wellnessLectureDto.getId());
+        }
+
+        final List<ReservationDto> reservationDtoList = reservationService.getAllByWellnessLectureId(wellnessLectureDto.getId());
+        final int reservationCntWithoutCancel = reservationDtoList.stream().filter(reservationDto -> !reservationDto.getStatus().equals(ReservationStatus.ADMIN_RESERVATION)).toList().size();
+
+        if(reservationCntWithoutCancel >= wellnessLectureDto.getMaxReservationCnt()){
+            throw new FullReservationException(WellnessLectureDto.class, wellnessLectureDto.getId());
+        }
+    }
+
+    private void checkWellnessTicketIssuanceToReservation(WellnessTicketIssuanceDto wellnessTicketIssuanceDto) {
+        if(wellnessTicketIssuanceDto.getIsDelete()) {
+            throw new DeletedAlreadyException(WellnessTicketIssuanceDto.class, wellnessTicketIssuanceDto.getId());
+        }
+
+        final ZonedDateTime now = ZonedDateTime.now();
+        if (wellnessTicketIssuanceDto.getType().equals("COUNT") && (wellnessTicketIssuanceDto.getRemainingCnt() <= 0 || wellnessTicketIssuanceDto.getExpireDate().isBefore(now))) {
+            wellnessTicketIssuanceDto.setIsDelete(true);
+            wellnessTicketIssuanceService.update(wellnessTicketIssuanceDto);
+            throw new TicketInvalidException(WellnessTicketIssuanceDto.class, wellnessTicketIssuanceDto.getId());
+        }
+        if(wellnessTicketIssuanceDto.getType().equals("PERIOD") && wellnessTicketIssuanceDto.getExpireDate().isBefore(now)){
+            wellnessTicketIssuanceDto.setIsDelete(true);
+            wellnessTicketIssuanceService.update(wellnessTicketIssuanceDto);
+            throw new TicketInvalidException(WellnessTicketIssuanceDto.class, wellnessTicketIssuanceDto.getId());
+        }
+    }
+}
