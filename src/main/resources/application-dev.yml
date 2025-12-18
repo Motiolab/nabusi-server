@@ -26,7 +26,7 @@ spring:
       client:
         registration:
           kakao:
-            client-id: 8c28ff806407640c17b6b7b109bf05a8
+            client-id: 859f5bca699836d7d1d02da37f242e74
             redirect-uri: https://api.motiolab.com/login/oauth2/code/kakao
             authorization-grant-type: authorization_code
             client-name: Kakao
@@ -38,7 +38,7 @@ spring:
               - name
               - phone_number
           naver:
-            client-id: OGLb1rdx8UD1_K0Sa7oB
+            client-id: tT2FOtsuwL6LZE89sanx
             redirect-uri: https://api.motiolab.com/login/oauth2/code/naver
             authorization-grant-type: authorization_code
             client-name: Naver
@@ -110,7 +110,7 @@ apple:
   redirect:
     url: https://positivehotelyoga.com/applelogin/callback
   client:
-    id: com.motiolab.motio-ios
+    id: com.motiolab.nabusi-ios
   key:
     id: K73M5XWDJ7
     path: appleKey/AuthKey_K73M5XWDJ7.p8

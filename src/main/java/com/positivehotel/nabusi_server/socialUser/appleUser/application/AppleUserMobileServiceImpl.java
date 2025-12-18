@@ -45,7 +45,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class AppleUserMobileServiceImpl implements AppleUserMobileService{
+public class AppleUserMobileServiceImpl implements AppleUserMobileService {
     private static final Logger log = LoggerFactory.getLogger(AppleUserMobileServiceImpl.class);
 
     @Value("${apple.auth.url}")
@@ -83,11 +83,12 @@ public class AppleUserMobileServiceImpl implements AppleUserMobileService{
         body.add("client_secret", makeClientSecret());
         body.add("grant_type", "authorization_code");
         body.add("code", authorizationCode);
-        body.add("redirect_uri", redirectUrl);
+
         body.add("scope", "email");
 
         final HttpEntity<?> request = new HttpEntity<>(body, httpHeaders);
-        final AppleAuthTokenResponse response = restTemplate.postForObject(requestUrl, request, AppleAuthTokenResponse.class);
+        final AppleAuthTokenResponse response = restTemplate.postForObject(requestUrl, request,
+                AppleAuthTokenResponse.class);
 
         String token = response.getId_token();
         log.info("token : " + token);
@@ -95,18 +96,18 @@ public class AppleUserMobileServiceImpl implements AppleUserMobileService{
         Base64.Decoder decoder = Base64.getDecoder();
         String payload = new String(decoder.decode(check[1]));
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> returnMap = mapper.readValue(payload, new TypeReference<>() {});
+        Map<String, Object> returnMap = mapper.readValue(payload, new TypeReference<>() {
+        });
 
         returnMap.forEach((key, value) -> System.out.println("key : " + key + ", value : " + value));
         log.info(returnMap.toString());
-
 
         final String email = returnMap.get("email") == null ? "" : returnMap.get("email").toString();
         final String sub = returnMap.get("sub") == null ? "" : returnMap.get("sub").toString();
 
         final AppleUserDto appleUserDto = appleUserService.getBySub(sub);
 
-        if(appleUserDto == null) {
+        if (appleUserDto == null) {
             return AppleUserMobileDto.builder()
                     .token(response.getRefresh_token())
                     .message("회원가입을 진행해주세요. 애플 회원가입 화면으로 이동")
@@ -114,9 +115,9 @@ public class AppleUserMobileServiceImpl implements AppleUserMobileService{
                     .sub(sub)
                     .isSuccessLogin(false)
                     .build();
-        }else{
+        } else {
             final MemberDto memberDto = memberService.getById(appleUserDto.getMemberId());
-            if(memberDto == null) {
+            if (memberDto == null) {
                 throw new NotFoundException(MemberDto.class, appleUserDto.getMemberId());
             }
             return AppleUserMobileDto.builder()
@@ -131,19 +132,22 @@ public class AppleUserMobileServiceImpl implements AppleUserMobileService{
 
     @Override
     public AppleSignupDto appleSignup(AppleSignupMobileRequestV1 appleSignupMobileRequestV1) {
-        final MemberDto existsMemberDto = memberService.getByMobileAndSocialName(appleSignupMobileRequestV1.getMobile(), "apple");
-        if(existsMemberDto != null) {
+        final MemberDto existsMemberDto = memberService.getByMobileAndSocialName(appleSignupMobileRequestV1.getMobile(),
+                "apple");
+        if (existsMemberDto != null) {
             log.error("이미 존재하는 회원입니다.");
             return AppleSignupDto.builder().build();
         }
 
-        final Optional<AppleUserDto> optionalAppleUserDto = appleUserService.getByMobile(appleSignupMobileRequestV1.getMobile());
-        if(optionalAppleUserDto.isPresent()) {
+        final Optional<AppleUserDto> optionalAppleUserDto = appleUserService
+                .getByMobile(appleSignupMobileRequestV1.getMobile());
+        if (optionalAppleUserDto.isPresent()) {
             log.error("이미 Apple 유저에 존재합니다.");
             return AppleSignupDto.builder().build();
         }
 
-        final RoleDto roleDto = roleService.getByName("NABUSI_USER").orElseThrow(() -> new RuntimeException("ROLE NOT FOUND"));
+        final RoleDto roleDto = roleService.getByName("NABUSI_USER")
+                .orElseThrow(() -> new RuntimeException("ROLE NOT FOUND"));
         final MemberDto memberDto = MemberDto.builder()
                 .name(appleSignupMobileRequestV1.getName())
                 .mobile(appleSignupMobileRequestV1.getCountryCode() + " " + appleSignupMobileRequestV1.getMobile())
@@ -166,6 +170,8 @@ public class AppleUserMobileServiceImpl implements AppleUserMobileService{
     }
 
     private String makeClientSecret() {
+        log.info("Apple Login Props: teamId={}, clientId={}, keyId={}, keyPath={}", teamId, clientId, keyId, keyPath);
+
         LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(5);
         return Jwts.builder()
                 .setHeaderParam("kid", keyId)
@@ -179,11 +185,11 @@ public class AppleUserMobileServiceImpl implements AppleUserMobileService{
                 .compact();
     }
 
-    private PrivateKey getPrivateKey()  {
+    private PrivateKey getPrivateKey() {
         try {
             ClassPathResource classPathResource = new ClassPathResource(keyPath);
 
-            if(!classPathResource.exists()){
+            if (!classPathResource.exists()) {
                 throw new IllegalArgumentException();
             }
             String privateKey;

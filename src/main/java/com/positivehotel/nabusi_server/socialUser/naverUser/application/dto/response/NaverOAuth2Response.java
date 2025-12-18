@@ -22,6 +22,7 @@ public class NaverOAuth2Response {
         private String gender;
         private String email;
         private String mobile;
+        private String nickname;
 
         @JsonProperty("mobile_e164")
         private String mobileE164;
