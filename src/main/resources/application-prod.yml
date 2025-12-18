@@ -1,28 +1,26 @@
 spring:
   config:
-    # In production, we avoid local file imports and use Environment Variables
-    # import: optional:classpath:application-secret.yml
+    import: optional:classpath:application-secret.yml
   flyway:
     enabled: true
     locations: classpath:db/migration
   datasource:
-    # Use Environment Variables for DB connection
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://motio-cluster.cluster-cvyq8aykq5lv.ap-northeast-2.rds.amazonaws.com:3306/motio_dev?useSSL=false&characterEncoding=UTF-8
+    username: admin
+    password: m151507!
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 20 # Increased for prod
+      maximum-pool-size: 10
       minimum-idle: 5
       idle-timeout: 30000
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl_auto: validate # STRICTLY validate in prod
+      ddl_auto: validate
     properties:
       hibernate:
-        show_sql: false # Disable for performance
-        highlight_sql: false
+        show_sql: true
+        highlight_sql: true
   security:
     oauth2:
       client:
@@ -68,14 +66,18 @@ spring:
       maxRequestSize: 10MB
   graphql:
     graphiql:
-      enabled: false # Disable GraphiQL in prod for security
-      
+      enabled: true
 logging:
   level:
-    root: INFO
-    org.hibernate.SQL: INFO
-    org.springframework: INFO
-
+    org:
+      hibernate:
+        SQL: DEBUG
+        orm:
+          jdbc:
+            bind: TRACE
+      springframework:
+        security: DEBUG
+        web: DEBUG
 jwt:
   access-token-expiration: 3600000
   refresh-token-expiration: 86400000
@@ -119,3 +121,5 @@ cloud:
       auto: false
     region:
       static: ap-northeast-2
+
+# tossed keys
