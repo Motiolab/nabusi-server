@@ -75,4 +75,6 @@ jobs:
                -e DB_URL='${{ secrets.DB_URL }}' \
                -e DB_USERNAME='${{ secrets.DB_USERNAME }}' \
                -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+               -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+               -e NAVER_SECRET='${{ secrets.NAVER_SECRET }}' \
                ${{ secrets.DOCKER_USERNAME }}/nabusi-server:latest
