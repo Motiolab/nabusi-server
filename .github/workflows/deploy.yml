@@ -71,4 +71,8 @@ jobs:
                -p 8080:8080 \
                --restart unless-stopped \
                -e TZ=Asia/Seoul \
+               -e SPRING_PROFILES_ACTIVE=prod \
+               -e DB_URL='${{ secrets.DB_URL }}' \
+               -e DB_USERNAME='${{ secrets.DB_USERNAME }}' \
+               -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
                ${{ secrets.DOCKER_USERNAME }}/nabusi-server:latest
