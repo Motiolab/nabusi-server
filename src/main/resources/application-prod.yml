@@ -83,9 +83,6 @@ jwt:
 kakao:
   admin-key: fc9a2392353a69910f77f44302c164ff
 
-toss-pay:
-  secretKey: ${TOSS_PAY_SECRET_KEY}
-
 naver-cloud:
   accessKey: ${NAVER_CLOUD_ACCESS_KEY}
   secretKey: ${NAVER_CLOUD_SECRET_KEY}
