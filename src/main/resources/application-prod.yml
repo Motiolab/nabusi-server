@@ -75,6 +75,7 @@ logging:
     org.springframework: INFO
 
 jwt:
+  secret: Z29nby10bS1zZXJ2ZXItZGxyamVvYW9yb3JodG9kZ290c3Atam9vbmdhbmduaW0teWVvbHNpbWhpaGFsZ2VveW8K
   access-token-expiration: 3600000
   refresh-token-expiration: 86400000
 
