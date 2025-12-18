@@ -112,13 +112,15 @@ firebase:
 # aws
 cloud:
   aws:
+    iamAccessKey: ${AWS_ACCESS_KEY}
+    iamSecretKey: ${AWS_SECRET_KEY}
     image:
       saved:
-        url: https://image-positivehotel-bucket.s3.ap-northeast-2.amazonaws.com/standard
+        url: https://nabusi-image-bucket.s3.ap-northeast-2.amazonaws.com/standard
       dns:
-        url: https://img.positivehotel.io
+        url: https://img.nabusi.com
     s3:
-      bucket: image-positivehotel-bucket
+      bucket: nabusi-image-bucket
     stack:
       auto: false
     region:
