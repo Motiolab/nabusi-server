@@ -121,3 +121,6 @@ cloud:
       auto: false
     region:
       static: ap-northeast-2
+
+toss-pay:
+  secretKey: ${TOSS_PAY_SECRET_KEY}

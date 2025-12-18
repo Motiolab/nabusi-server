@@ -123,5 +123,6 @@ cloud:
       auto: false
     region:
       static: ap-northeast-2
-
-# tossed keys
+      
+toss-pay:
+  secretKey: ${TOSS_PAY_SECRET_KEY}

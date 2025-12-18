@@ -79,4 +79,5 @@ jobs:
                -e NAVER_SECRET='${{ secrets.NAVER_SECRET }}' \
                -e NAVER_CLOUD_ACCESS_KEY='${{ secrets.NAVER_CLOUD_ACCESS_KEY }}' \
                -e NAVER_CLOUD_SECRET_KEY='${{ secrets.NAVER_CLOUD_SECRET_KEY }}' \
+               -e TOSS_PAY_SECRET_KEY='${{ secrets.TOSS_PAY_SECRET_KEY }}' \
                ${{ secrets.DOCKER_USERNAME }}/nabusi-server:latest
