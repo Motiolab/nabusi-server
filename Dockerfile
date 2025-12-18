@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM amazoncorretto:17
 WORKDIR /app
 # Expecting the referenced jar to be built securely by the CI pipeline before building this image
 # or locally via ./gradlew clean build
