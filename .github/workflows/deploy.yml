@@ -20,6 +20,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Create Firebase Admin SDK JSON
+        run: |
+          mkdir -p src/main/resources/firebase
+          echo "${{ secrets.FIREBASE_JSON_KEY }}" | base64 --decode > src/main/resources/firebase/nabusi-f20e3-firebase-adminsdk-fbsvc-9902a35f55.json
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
