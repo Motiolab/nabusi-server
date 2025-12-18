@@ -36,13 +36,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/v1/mobile/wellness-lecture-review/.*", "/v1/mobile/my/wellness-ticket-issuance/list",
             "/v1/mobile/wellness-lecture-review/.*/.*", "/healthy/check", "/v1/mobile/auth/code",
             "/v1/verification/mobile/auth/code/.*", "/v1/mobile/apple-user/signup", "/favicon.ico", "/v1/mobile/member",
-            "/v1/mobile/wellness-lecture/manage/date", "/v1/mobile/shop/.*"); // 테스트 ngrok 사용시 추가 "http://*.ngrok-free.app/login"
-    public static final List<String> PERMISSION_WHITELIST = List.of("/v1/mobile/cart/item", "/v1/mobile/cart/list", "/v1/admin/member/address/.*", "/v1/admin/member/point");
+            "/v1/mobile/wellness-lecture/manage/date", "/v1/mobile/shop/.*",
+            "/v3/api-docs.*", "/swagger-ui.*", "/swagger-ui.html"); // 테스트 ngrok 사용시 추가
+                                                                    // "http://*.ngrok-free.app/login"
+    public static final List<String> PERMISSION_WHITELIST = List.of("/v1/mobile/cart/item", "/v1/mobile/cart/list",
+            "/v1/admin/member/address/.*", "/v1/admin/member/point");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
-        log.info("start ----------------------------------------------------------------------------------------------------------------------------------------------");
+        log.info(
+                "start ----------------------------------------------------------------------------------------------------------------------------------------------");
         log.info("SessionId : {}", request.getRequestedSessionId());
         log.info("ContextPath : {}", request.getContextPath());
         log.info("X-Real-IP: {}", request.getHeader("X-Real-IP"));
@@ -73,12 +77,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwtTokenProvider.refreshTokensAndAuthenticate(accessToken, response);
         }
 
-        if (PERMISSION_WHITELIST.stream().noneMatch(url -> request.getRequestURI().matches(url)) && !checkPermission(accessToken, request)) {
+        if (PERMISSION_WHITELIST.stream().noneMatch(url -> request.getRequestURI().matches(url))
+                && !checkPermission(accessToken, request)) {
             customAuthResponseHandler.forbidden(response, "Permission denied.");
             return;
         }
 
-        log.info("end ------------------------------------------------------------------------------------------------------------------------------------------------");
+        log.info(
+                "end ------------------------------------------------------------------------------------------------------------------------------------------------");
         doFilter(request, response, filterChain);
     }
 
