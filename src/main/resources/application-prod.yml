@@ -1,7 +1,5 @@
 spring:
-  config:
-    # In production, we avoid local file imports and use Environment Variables
-    # import: optional:classpath:application-secret.yml
+
   flyway:
     enabled: true
     locations: classpath:db/migration
