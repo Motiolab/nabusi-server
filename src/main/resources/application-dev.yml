@@ -39,6 +39,7 @@ spring:
               - phone_number
           naver:
             client-id: tT2FOtsuwL6LZE89sanx
+            client-secret: ${NAVER_SECRET}
             redirect-uri: https://api.motiolab.com/login/oauth2/code/naver
             authorization-grant-type: authorization_code
             client-name: Naver
@@ -79,7 +80,7 @@ logging:
         security: DEBUG
         web: DEBUG
 jwt:
-  secret: Z29nby10bS1zZXJ2ZXItZGxyamVvYW9yb3JodG9kZ290c3Atam9vbmdhbmduaW0teWVvbHNpbWhpaGFsZ2VveW8K
+  secret: ${JWT_SECRET}
   access-token-expiration: 3600000
   refresh-token-expiration: 86400000
 
