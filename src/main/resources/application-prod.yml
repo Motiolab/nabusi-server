@@ -110,6 +110,8 @@ firebase:
 # aws
 cloud:
   aws:
+    iamAccessKey: ${AWS_ACCESS_KEY}
+    iamSecretKey: ${AWS_SECRET_KEY}
     image:
       saved:
         url: https://image-positivehotel-bucket.s3.ap-northeast-2.amazonaws.com/standard
