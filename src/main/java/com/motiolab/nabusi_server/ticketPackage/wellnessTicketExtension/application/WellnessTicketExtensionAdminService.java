@@ -1,0 +1,11 @@
+package com.motiolab.nabusi_server.ticketPackage.wellnessTicketExtension.application;
+
+import com.motiolab.nabusi_server.ticketPackage.wellnessTicketExtension.application.dto.WellnessTicketExtensionAdminDto;
+import com.motiolab.nabusi_server.ticketPackage.wellnessTicketExtension.application.dto.request.CreateWellnessTicketExtensionAdminRequestV1;
+
+import java.util.List;
+
+public interface WellnessTicketExtensionAdminService {
+    void createWellnessTicketExtension(CreateWellnessTicketExtensionAdminRequestV1 createWellnessTicketExtensionAdminRequestV1);
+    List<WellnessTicketExtensionAdminDto> getWellnessTicketExtensionListByWellnessTicketId(Long wellnessTicketId);
+}

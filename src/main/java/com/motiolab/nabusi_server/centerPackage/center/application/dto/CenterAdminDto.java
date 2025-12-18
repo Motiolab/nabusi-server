@@ -1,0 +1,17 @@
+package com.motiolab.nabusi_server.centerPackage.center.application.dto;
+
+import com.motiolab.nabusi_server.role.application.dto.RoleDto;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.util.List;
+
+@Builder
+@Getter
+public class CenterAdminDto {
+    CenterDto centerDto;
+    RoleDto myRoleDto;
+    List<CenterRoomDto> centerRoomDtoList;
+    List<CenterOpenInfoDto> centerOpenInfoDtoList;
+    List<CenterContactNumberDto> centerContactNumberDtoList;
+}

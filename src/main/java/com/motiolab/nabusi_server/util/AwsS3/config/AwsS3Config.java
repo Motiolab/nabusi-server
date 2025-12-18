@@ -1,0 +1,34 @@
+package com.motiolab.nabusi_server.util.AwsS3.config;
+
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class AwsS3Config {
+    @Value("${cloud.aws.iamAccessKey}")
+    private String iamAccessKey;
+    @Value("${cloud.aws.iamSecretKey}")
+    private String iamSecretKey;
+    @Value("${cloud.aws.region.static}")
+    private String region;
+
+    public AmazonS3Client amazonS3Client() {
+        // Debugging: Print usage AccessKey (Masked)
+        if (iamAccessKey != null && iamAccessKey.length() > 4) {
+            String maskedKey = iamAccessKey.substring(0, 4) + "****"
+                    + iamAccessKey.substring(iamAccessKey.length() - 4);
+            System.out.println(
+                    ">>> [DEBUG] Current AWS Access Key: " + iamAccessKey + " (Check if this user has permissions!)");
+        }
+
+        final BasicAWSCredentials basicAWSCredentials = new BasicAWSCredentials(iamAccessKey, iamSecretKey);
+        return (AmazonS3Client) AmazonS3ClientBuilder.standard()
+                .withRegion(region)
+                .withCredentials(new AWSStaticCredentialsProvider(basicAWSCredentials))
+                .build();
+    }
+}

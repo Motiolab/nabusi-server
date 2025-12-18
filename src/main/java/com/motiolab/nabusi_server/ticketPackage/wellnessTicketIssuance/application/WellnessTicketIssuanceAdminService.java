@@ -1,0 +1,14 @@
+package com.motiolab.nabusi_server.ticketPackage.wellnessTicketIssuance.application;
+
+import com.motiolab.nabusi_server.ticketPackage.wellnessTicketIssuance.application.dto.WellnessTicketIssuanceAdminDto;
+import com.motiolab.nabusi_server.ticketPackage.wellnessTicketIssuance.application.dto.request.CreateWellnessTicketIssuanceAdminRequestV1;
+import com.motiolab.nabusi_server.ticketPackage.wellnessTicketIssuance.application.dto.request.UpdateWellnessTicketIssuanceAdminRequestV1;
+
+import java.util.List;
+
+public interface WellnessTicketIssuanceAdminService {
+    void createWellnessTicketIssuance(CreateWellnessTicketIssuanceAdminRequestV1 createWellnessTicketIssuanceAdminRequestV1);
+    List<WellnessTicketIssuanceAdminDto> getWellnessTicketIssuanceListByWellnessTicketId(Long wellnessTicketId);
+    WellnessTicketIssuanceAdminDto getWellnessTicketIssuanceUpdateDetailById(Long id);
+    void updateWellnessTicketIssuance(UpdateWellnessTicketIssuanceAdminRequestV1 updateWellnessTicketIssuanceAdminRequestV1);
+}
