@@ -1,4 +1,10 @@
+
+app:
+  login:
+    success-url: https://admin.nabusi.com/login/success
+
 spring:
+
 
   flyway:
     enabled: true
