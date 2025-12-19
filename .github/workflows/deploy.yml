@@ -84,6 +84,7 @@ jobs:
                -e NAVER_SECRET='${{ secrets.NAVER_SECRET }}' \
                -e NAVER_CLOUD_ACCESS_KEY='${{ secrets.NAVER_CLOUD_ACCESS_KEY }}' \
                -e NAVER_CLOUD_SECRET_KEY='${{ secrets.NAVER_CLOUD_SECRET_KEY }}' \
+               -e KAKAO_SECRET='${{ secrets.KAKAO_SECRET }}' \
                -e TOSS_PAY_SECRET_KEY='${{ secrets.TOSS_PAY_SECRET_KEY }}' \
                -e AWS_ACCESS_KEY='${{ secrets.AWS_ACCESS_KEY }}' \
                -e AWS_SECRET_KEY='${{ secrets.AWS_SECRET_KEY }}' \
