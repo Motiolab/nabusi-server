@@ -36,7 +36,7 @@ spring:
             redirect-uri: https://api.nabusi.com/login/oauth2/code/kakao
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
-            client-secret: GvFluLDEt08o6gYMBCW8NBTR2SVXtCCy
+            client-secret: ${KAKAO_SECRET}
             client-name: Kakao
             scope:
               - account_email
