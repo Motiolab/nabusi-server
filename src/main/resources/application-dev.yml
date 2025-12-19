@@ -27,7 +27,7 @@ spring:
         registration:
           kakao:
             client-id: 859f5bca699836d7d1d02da37f242e74
-            redirect-uri: https://api.motiolab.com/login/oauth2/code/kakao
+            redirect-uri: https://api.nabusi.com/login/oauth2/code/kakao
             authorization-grant-type: authorization_code
             client-name: Kakao
             scope:
@@ -40,7 +40,7 @@ spring:
           naver:
             client-id: tT2FOtsuwL6LZE89sanx
             client-secret: ${NAVER_SECRET}
-            redirect-uri: https://api.motiolab.com/login/oauth2/code/naver
+            redirect-uri: https://api.nabusi.com/login/oauth2/code/naver
             authorization-grant-type: authorization_code
             client-name: Naver
             scope:
