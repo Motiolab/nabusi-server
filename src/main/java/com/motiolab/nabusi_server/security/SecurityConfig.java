@@ -62,7 +62,7 @@ public class SecurityConfig {
         final CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "https://nabusi.com",
                 "https://appleid.apple.com", "http://localhost:8080", "http://127.0.0.1:3000", "http://10.0.2.2:3000",
-                "https://admin.motiolab.com"));
+                "https://admin.nabusi.com"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
