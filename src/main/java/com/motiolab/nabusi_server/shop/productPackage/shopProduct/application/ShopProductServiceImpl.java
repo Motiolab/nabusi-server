@@ -15,8 +15,8 @@ public class ShopProductServiceImpl implements ShopProductService {
     private final ShopProductRepository shopProductRepository;
 
     @Override
-    public List<ShopProductDto> getAll() {
-        final List<ShopProductEntity> shopProductEntityList = shopProductRepository.findAll();
+    public List<ShopProductDto> getAllByDisplay(String display) {
+        final List<ShopProductEntity> shopProductEntityList = shopProductRepository.findAllByDisplay(display);
         return shopProductEntityList.stream().map(ShopProductDto::from).toList();
     }
 

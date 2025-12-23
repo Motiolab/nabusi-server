@@ -20,7 +20,7 @@ public class ShopProductMobileServiceImpl implements ShopProductMobileService {
 
     @Override
     public List<ShopProductMobileDto> getShopProductList() {
-        final List<ShopProductDto> shopProductDtoList = shopProductService.getAll();
+        final List<ShopProductDto> shopProductDtoList = shopProductService.getAllByDisplay("Y");
         final List<Long> shopProductIdList = shopProductDtoList.stream().map(ShopProductDto::getId).toList();
 
         final List<ShopProductReviewDto> shopProductReviewDtoList = shopProductReviewService.getAllByShopProductIdList(shopProductIdList);

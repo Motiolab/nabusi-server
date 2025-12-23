@@ -5,7 +5,7 @@ import com.motiolab.nabusi_server.shop.productPackage.shopProduct.application.dt
 import java.util.List;
 
 public interface ShopProductService {
-    List<ShopProductDto> getAll();
+    List<ShopProductDto> getAllByDisplay(String display);
 
     ShopProductDto getById(Long id);
 
