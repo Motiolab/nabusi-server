@@ -19,7 +19,6 @@ public class SmsServiceImplTest {
     private SmsService smsService;
 
     @Test
-    @org.junit.jupiter.api.Disabled("External dependency fail causing build break")
     @DisplayName("SMS 전송 테스트")
     void sendSmsTest() {
         // Given
