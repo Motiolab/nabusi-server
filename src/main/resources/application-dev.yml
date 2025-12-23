@@ -93,6 +93,7 @@ naver-cloud:
   domain: https://sens.apigw.ntruss.com
   sms:
     serviceId: ncp:sms:kr:363881440036:nabusi
+    from: 01088983457
 
 apple:
   auth:

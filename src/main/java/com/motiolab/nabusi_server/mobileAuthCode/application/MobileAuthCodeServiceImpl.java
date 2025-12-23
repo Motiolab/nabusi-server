@@ -9,6 +9,7 @@ import com.motiolab.nabusi_server.notificationPackage.notificationSms.applicatio
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,16 +20,19 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
-public class MobileAuthCodeServiceImpl implements MobileAuthCodeService{
+public class MobileAuthCodeServiceImpl implements MobileAuthCodeService {
     private static final Logger log = LoggerFactory.getLogger(MobileAuthCodeServiceImpl.class);
     private final SmsService smsService;
     private final MobileAuthCodeRepository mobileAuthCodeRepository;
+
+    @Value("${naver-cloud.sms.from}")
+    private String senderPhone;
 
     @Override
     public SendSmsResponse sendMobileAuthCode(SendMobileAuthCodeRequestV1 sendMobileAuthCodeRequestV1) {
         List<SendSmsBodyRequest.Message> messages = new ArrayList<>();
         String authCode = generateRandomNumber();
-        final String content = "[모티오] 인증번호 [" + authCode + "]를 입력해주세요.";
+        final String content = "[나부시] 인증번호 [" + authCode + "]를 입력해주세요.";
         final String subject = "인증번호";
 
         messages.add(SendSmsBodyRequest.Message.builder()
@@ -41,13 +45,13 @@ public class MobileAuthCodeServiceImpl implements MobileAuthCodeService{
                 .type("SMS")
                 .contentType("COMM")
                 .countryCode(sendMobileAuthCodeRequestV1.getCountryCode())
-                .from("0205457633")
+                .from(senderPhone)
                 .content(content)
                 .messages(messages)
                 .build();
 
         final SendSmsResponse sendSmsResponse = smsService.send(sendSmsBodyRequest);
-        if(sendSmsResponse.getStatusCode().equals("202")) {
+        if (sendSmsResponse.getStatusCode().equals("202")) {
             MobileAuthCodeEntity mobileAuthCodeEntity = MobileAuthCodeEntity.create(
                     sendMobileAuthCodeRequestV1.getCountryCode(),
                     sendMobileAuthCodeRequestV1.getMobile(),
@@ -61,8 +65,10 @@ public class MobileAuthCodeServiceImpl implements MobileAuthCodeService{
 
     @Override
     public Boolean verificationMobileAuthCode(String authCode) {
-        final Optional<MobileAuthCodeEntity> optionalMobileAuthCodeEntity = mobileAuthCodeRepository.findByAuthCode(authCode);
-        if (optionalMobileAuthCodeEntity.isEmpty() || optionalMobileAuthCodeEntity.get().getExpireDateTime().isBefore(LocalDateTime.now())){
+        final Optional<MobileAuthCodeEntity> optionalMobileAuthCodeEntity = mobileAuthCodeRepository
+                .findByAuthCode(authCode);
+        if (optionalMobileAuthCodeEntity.isEmpty()
+                || optionalMobileAuthCodeEntity.get().getExpireDateTime().isBefore(LocalDateTime.now())) {
             log.error("SmsAuthNumber is Not match");
             return false;
         } else {
