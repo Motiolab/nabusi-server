@@ -58,7 +58,8 @@ public class ReservationMobileServiceImpl implements ReservationMobileService{
         // todo 예약 정책에서 예약 가능한 시간인지 체크하는 로직 추가
         final ReservationDto reservationDtoExist = reservationService.getByMemberIdAndWellnessLectureId(createReservationMobileRequestV1.getMemberId(), createReservationMobileRequestV1.getWellnessLectureId());
         if(reservationDtoExist != null) {
-            throw new ExistsAlreadyException(ReservationDto.class, reservationDtoExist.getId());
+            reservationDtoExist.setStatus(createReservationMobileRequestV1.getStatus());
+            reservationService.update(reservationDtoExist);
         }
 
         final WellnessLectureDto wellnessLectureDto = wellnessLectureService.getById(createReservationMobileRequestV1.getWellnessLectureId());
