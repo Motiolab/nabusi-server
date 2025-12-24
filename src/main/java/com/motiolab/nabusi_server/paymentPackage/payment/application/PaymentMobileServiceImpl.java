@@ -150,9 +150,15 @@ public class PaymentMobileServiceImpl implements PaymentMobileService {
                         .build();
                 final PaymentDto savedPaymentDto = paymentService.create(paymentDto);
 
-                final WellnessLectureDto wellnessLectureDto = wellnessLectureService
-                        .getById(createTossPayRequest.getWellnessLectureId());
-                Long centerId = (wellnessLectureDto != null) ? wellnessLectureDto.getCenterId() : 0L;
+                //todo 아래 코드는 컨트롤러 하나 추가해서 따로 관리
+                if (createTossPayRequest.getWellnessLectureId() == 0) {
+                    return;
+                }
+
+                Long centerId = java.util.Optional
+                        .ofNullable(wellnessLectureService.getById(createTossPayRequest.getWellnessLectureId()))
+                        .map(WellnessLectureDto::getCenterId)
+                        .orElse(0L);
 
                 final ReservationDto reservationDto = ReservationDto.builder()
                         .centerId(centerId)
@@ -164,7 +170,6 @@ public class PaymentMobileServiceImpl implements PaymentMobileService {
                         .build();
 
                 reservationService.create(reservationDto);
-
             } catch (Exception e) {
                 e.printStackTrace(); // JSON 파싱 예외 처리
             }
