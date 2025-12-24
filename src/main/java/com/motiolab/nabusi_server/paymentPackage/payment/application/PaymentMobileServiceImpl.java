@@ -3,7 +3,6 @@ package com.motiolab.nabusi_server.paymentPackage.payment.application;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.WellnessLectureService;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.WellnessLectureDto;
-import com.motiolab.nabusi_server.exception.customException.NotFoundException;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.PaymentDto;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request.CancelTossPayRequest;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request.CreateTossPayRequest;
@@ -39,7 +38,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentMobileServiceImpl implements PaymentMobileService{
+public class PaymentMobileServiceImpl implements PaymentMobileService {
     @Value("${toss-pay.secretKey}")
     private String secretKey;
     private final ObjectMapper objectMapper;
@@ -59,26 +58,31 @@ public class PaymentMobileServiceImpl implements PaymentMobileService{
 
         String url = "https://api.tosspayments.com/v1/payments/confirm";
 
-        final String authKey = new String(Base64.getEncoder().encode(secretKey.getBytes(StandardCharsets.UTF_8)));
+        final String authKey = Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
         final HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Basic " + authKey);
         headers.set("Content-Type", "application/json");
 
-        final String requestBody = "{"
-                + "\"paymentKey\": \"" + createTossPayRequest.getPaymentKey() + "\","
-                + "\"amount\": \"" + createTossPayRequest.getAmount() + "\""
-                + "\"orderId\": \"" + createTossPayRequest.getOrderId() + "\""
-                + "}";
+        String requestBody;
+        try {
+            requestBody = objectMapper.writeValueAsString(java.util.Map.of(
+                    "paymentKey", createTossPayRequest.getPaymentKey(),
+                    "amount", createTossPayRequest.getAmount(),
+                    "orderId", createTossPayRequest.getOrderId()));
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating request body", e);
+        }
 
         final HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
-        final ResponseEntity<TossPayResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, TossPayResponse.class);
+        final ResponseEntity<TossPayResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity,
+                TossPayResponse.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             try {
                 TossPayResponse tossPayResponse = response.getBody();
                 assert tossPayResponse != null;
                 TossPayCardDto savedTossPayCardDto = null;
-                if(tossPayResponse.getCard() != null) {
+                if (tossPayResponse.getCard() != null) {
                     final TossPayCardDto tossPayCardDto = TossPayCardDto.builder()
                             .issuerCode(tossPayResponse.getCard().getIssuerCode())
                             .acquirerCode(tossPayResponse.getCard().getAcquirerCode())
@@ -98,7 +102,7 @@ public class PaymentMobileServiceImpl implements PaymentMobileService{
                 }
 
                 TossPayEasyPayDto savedTossPayEasyPayDto = null;
-                if(tossPayResponse.getEasyPay() != null) {
+                if (tossPayResponse.getEasyPay() != null) {
                     final TossPayEasyPayDto tossPayEasyPayDto = TossPayEasyPayDto.builder()
                             .provider(tossPayResponse.getEasyPay().getProvider())
                             .amount(tossPayResponse.getEasyPay().getAmount())
@@ -146,12 +150,12 @@ public class PaymentMobileServiceImpl implements PaymentMobileService{
                         .build();
                 final PaymentDto savedPaymentDto = paymentService.create(paymentDto);
 
-
-                final WellnessLectureDto wellnessLectureDto = wellnessLectureService.getById(createTossPayRequest.getWellnessLectureId());
-                if (wellnessLectureDto == null) throw new NotFoundException(WellnessLectureDto.class, createTossPayRequest.getWellnessLectureId());
+                final WellnessLectureDto wellnessLectureDto = wellnessLectureService
+                        .getById(createTossPayRequest.getWellnessLectureId());
+                Long centerId = (wellnessLectureDto != null) ? wellnessLectureDto.getCenterId() : 0L;
 
                 final ReservationDto reservationDto = ReservationDto.builder()
-                        .centerId(wellnessLectureDto.getCenterId())
+                        .centerId(centerId)
                         .memberId(createTossPayRequest.getMemberId())
                         .actionMemberId(createTossPayRequest.getMemberId())
                         .status(ReservationStatus.INAPP_PAYMENT_RESERVATION)
@@ -166,7 +170,8 @@ public class PaymentMobileServiceImpl implements PaymentMobileService{
             }
         } else {
             System.out.println("Payment confirmation failed. Status: " + response.getStatusCode());
-            ResponseEntity<TossPayFailureRequest> tossPayFailureRes = restTemplate.exchange(url, HttpMethod.POST, entity, TossPayFailureRequest.class);
+            ResponseEntity<TossPayFailureRequest> tossPayFailureRes = restTemplate.exchange(url, HttpMethod.POST,
+                    entity, TossPayFailureRequest.class);
             TossPayFailureRequest tossPayFailureRequest = tossPayFailureRes.getBody();
             if (tossPayFailureRequest != null) {
                 final TossPayFailureDto tossPayFailureDto = TossPayFailureDto.builder()
@@ -181,35 +186,40 @@ public class PaymentMobileServiceImpl implements PaymentMobileService{
 
     @Override
     public void cancelTossPay(CancelTossPayRequest cancelTossPayRequest) {
-        if (cancelTossPayRequest.getPaymentKey() == null){
+        if (cancelTossPayRequest.getPaymentKey() == null) {
             throw new RuntimeException("PaymentKey is null");
         }
 
         final TossPayDto tossPayDto = tossPayService.getByPaymentKey(cancelTossPayRequest.getPaymentKey());
-        if(tossPayDto == null) {
+        if (tossPayDto == null) {
             throw new RuntimeException("TossPayEntity is null, paymentKey : " + cancelTossPayRequest.getPaymentKey());
         }
 
-        String url = "https://api.tosspayments.com/v1/payments/" + cancelTossPayRequest.getPaymentKey()+ "/cancel";
+        String url = "https://api.tosspayments.com/v1/payments/" + cancelTossPayRequest.getPaymentKey() + "/cancel";
 
-        final String authKey = new String(Base64.getEncoder().encode(secretKey.getBytes(StandardCharsets.UTF_8)));
+        final String authKey = Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Basic " + authKey);
         headers.set("Content-Type", "application/json");
 
-        String requestBody = "{"
-                + "\"cancelReason\": \"" + cancelTossPayRequest.getCancelReason() + "\""
-                + "}";
+        String requestBody;
+        try {
+            requestBody = objectMapper.writeValueAsString(java.util.Map.of(
+                    "cancelReason", cancelTossPayRequest.getCancelReason()));
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating request body", e);
+        }
 
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<TossPayResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, TossPayResponse.class);
+        ResponseEntity<TossPayResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity,
+                TossPayResponse.class);
         if (response.getStatusCode().is2xxSuccessful()) {
             final TossPayResponse tossPayResponse = response.getBody();
 
-            //push 알림 보내기
-            //kakao 알림 보내기
+            // push 알림 보내기
+            // kakao 알림 보내기
 
-            //tospay 테이블에 업데이트
+            // tospay 테이블에 업데이트
 
             PaymentDto paymentDto = paymentService.getByTossPayId(tossPayDto.getId());
             paymentDto.setStatus(PaymentStatusEnum.CANCELE);
@@ -237,8 +247,8 @@ public class PaymentMobileServiceImpl implements PaymentMobileService{
                             .refundableAmount(cancels.getRefundableAmount())
                             .cancelStatus(cancels.getCancelStatus())
                             .cancelRequestId(cancels.getCancelRequestId())
-                            .build()
-                    ).toList();
+                            .build())
+                    .toList();
             tossPayCancelService.createAll(tossPayCancelDtoList);
 
             ReservationDto reservationDto = reservationService.getById(cancelTossPayRequest.getReservationId());
@@ -246,7 +256,8 @@ public class PaymentMobileServiceImpl implements PaymentMobileService{
             reservationService.update(reservationDto);
         } else {
             System.out.println("Payment confirmation failed. Status: " + response.getStatusCode());
-            ResponseEntity<TossPayFailureRequest> tossPayFailureRes = restTemplate.exchange(url, HttpMethod.POST, entity, TossPayFailureRequest.class);
+            ResponseEntity<TossPayFailureRequest> tossPayFailureRes = restTemplate.exchange(url, HttpMethod.POST,
+                    entity, TossPayFailureRequest.class);
             TossPayFailureRequest tossPayFailureRequest = tossPayFailureRes.getBody();
             if (tossPayFailureRequest != null) {
                 final TossPayFailureDto tossPayFailureDto = TossPayFailureDto.builder()
