@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                                                     // "http://*.ngrok-free.app/login"
     public static final List<String> PERMISSION_WHITELIST = List.of("/v1/mobile/cart/item", "/v1/mobile/cart/item/.*",
             "/v1/mobile/cart/list", "/v1/admin/member/address/.*", "/v1/admin/member/point", "/v1/mobile/toss-pay/create",
-            "/v1/mobile/reservation/payment/confirm");
+            "/v1/mobile/reservation/payment/confirm", "/v1/mobile/reservation/validate");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,

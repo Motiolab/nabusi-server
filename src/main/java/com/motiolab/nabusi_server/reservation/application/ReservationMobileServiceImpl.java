@@ -22,6 +22,7 @@ import com.motiolab.nabusi_server.reservation.application.dto.ReservationDto;
 import com.motiolab.nabusi_server.reservation.application.dto.request.CancelReservationMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationWithPaymentConfirmMobileRequestV1;
+import com.motiolab.nabusi_server.reservation.application.dto.request.ValidationReservationBeforePaymentMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.response.ReservationMobileDto;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.teacher.application.TeacherService;
@@ -357,6 +358,25 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
         if (fcmToken != null) {
             notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "수업 예약 완료", "수업 예약이 성공적으로 완료되었습니다.");
         }
+    }
+
+    @Override
+    public void validateReservationBeforePayment(ValidationReservationBeforePaymentMobileRequestV1 request) {
+        // 이미 수업에 예약했는지 검사
+        final ReservationDto reservationDtoExist = reservationService
+                .getByMemberIdAndWellnessLectureId(request.getMemberId(), request.getWellnessLectureId());
+        if (reservationDtoExist != null
+                && !(reservationDtoExist.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION)
+                        || reservationDtoExist.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION))) {
+            throw new ExistsAlreadyException(ReservationDto.class, request.getWellnessLectureId());
+        }
+
+        // validateReservation 검사 (정책 및 정원)
+        final WellnessLectureDto wellnessLectureDto = wellnessLectureService.getById(request.getWellnessLectureId());
+        if (wellnessLectureDto == null)
+            throw new NotFoundException(WellnessLectureDto.class, request.getWellnessLectureId());
+
+        this.validateReservation(request.getWellnessLectureId(), wellnessLectureDto.getCenterId());
     }
 
     private void validateReservation(Long wellnessLectureId, Long centerId) {

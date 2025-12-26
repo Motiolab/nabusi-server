@@ -5,6 +5,7 @@ import com.motiolab.nabusi_server.reservation.application.ReservationMobileServi
 import com.motiolab.nabusi_server.reservation.application.dto.request.CancelReservationMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationWithPaymentConfirmMobileRequestV1;
+import com.motiolab.nabusi_server.reservation.application.dto.request.ValidationReservationBeforePaymentMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.response.*;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderMobileDto;
@@ -37,6 +38,14 @@ public class ReservationMobileController {
         createReservationWithPaymentConfirmMobileRequestV1.setMemberId(memberId);
         reservationMobileService.createReservationWithPaymentConfirm(createReservationWithPaymentConfirmMobileRequestV1);
         return ResponseEntity.ok(CreateReservationWithPaymentConfirmMobileResponseV1.builder().success(true).build());
+    }
+
+    @PostMapping("/v1/mobile/reservation/validate")
+    public ResponseEntity<Void> validateReservationBeforePayment(final @MemberId Long memberId, final @RequestBody ValidationReservationBeforePaymentMobileRequestV1 validationReservationBeforePaymentMobileRequestV1) {
+        validationReservationBeforePaymentMobileRequestV1.setMemberId(memberId);
+        reservationMobileService.validateReservationBeforePayment(validationReservationBeforePaymentMobileRequestV1);
+        return ResponseEntity.ok().build();
+
     }
 
     @PutMapping("/v1/mobile/reservation/cancel")
