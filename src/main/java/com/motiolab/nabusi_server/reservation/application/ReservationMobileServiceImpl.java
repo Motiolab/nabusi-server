@@ -347,7 +347,7 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                 .centerId(request.getCenterId())
                 .memberId(request.getMemberId())
                 .actionMemberId(request.getMemberId())
-                .status(ReservationStatus.INAPP_RESERVATION)
+                .status(ReservationStatus.INAPP_PAYMENT_RESERVATION)
                 .wellnessLectureId(request.getWellnessLectureId())
                 .paymentId(paymentDto.getId())
                 .build();
