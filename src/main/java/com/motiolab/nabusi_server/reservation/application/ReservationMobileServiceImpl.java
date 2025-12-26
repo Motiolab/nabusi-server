@@ -184,7 +184,7 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
 
     @Override
     public List<ReservationMobileDto> getReservationList(Long memberId) {
-        final List<ReservationStatus> reservationStatusList = List.of(ReservationStatus.INAPP_RESERVATION,
+        final List<ReservationStatus> reservationStatusList = List.of(ReservationStatus.INAPP_RESERVATION, ReservationStatus.INAPP_PAYMENT_RESERVATION,
                 ReservationStatus.ADMIN_RESERVATION, ReservationStatus.ONSITE_RESERVATION);
         final List<ReservationDto> reservationDtoList = reservationService.getAllByMemberIdAndStatusList(memberId,
                 reservationStatusList);
