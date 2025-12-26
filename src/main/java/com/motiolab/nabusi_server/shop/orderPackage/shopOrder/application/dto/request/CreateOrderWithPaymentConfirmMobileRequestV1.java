@@ -9,10 +9,12 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateOrderMobileRequestV1 {
+public class CreateOrderWithPaymentConfirmMobileRequestV1 {
+    private String paymentKey;
+    private String amount;
+    private String orderId;
     private Long memberId;
     private Long shopCartId;
-    private Long paymentId;
     private Boolean purchaseConfirmation;
     private String status;
     private Integer totalPrice;

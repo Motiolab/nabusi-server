@@ -10,16 +10,17 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class FcmTokenMobileServiceImpl implements FcmTokenMobileService{
+public class FcmTokenMobileServiceImpl implements FcmTokenMobileService {
     private final FcmTokenMobileRepository fcmTokenMobileRepository;
 
     @Override
     public void createOrUpdateFcmTokenMobile(String token, Long memberId) {
-        final Optional<FcmTokenMobileEntity> optionalFcmTokenMobileEntity = fcmTokenMobileRepository.findByMemberId(memberId);
-        if(optionalFcmTokenMobileEntity.isEmpty()) {
+        final Optional<FcmTokenMobileEntity> optionalFcmTokenMobileEntity = fcmTokenMobileRepository
+                .findByMemberId(memberId);
+        if (optionalFcmTokenMobileEntity.isEmpty()) {
             final FcmTokenMobileEntity fcmTokenMobileEntity = FcmTokenMobileEntity.create(token, memberId, true);
             fcmTokenMobileRepository.save(fcmTokenMobileEntity);
-        }else{
+        } else {
             final FcmTokenMobileEntity fcmTokenMobileEntity = optionalFcmTokenMobileEntity.get();
             fcmTokenMobileEntity.update(token, memberId);
             fcmTokenMobileEntity.updateIsLogin(true);
@@ -34,5 +35,12 @@ public class FcmTokenMobileServiceImpl implements FcmTokenMobileService{
 
         fcmTokenMobileEntity.updateIsLogin(false);
         fcmTokenMobileRepository.save(fcmTokenMobileEntity);
+    }
+
+    @Override
+    public String getFcmTokenByMemberId(Long memberId) {
+        return fcmTokenMobileRepository.findByMemberId(memberId)
+                .map(FcmTokenMobileEntity::getToken)
+                .orElse(null);
     }
 }

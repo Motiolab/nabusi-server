@@ -12,5 +12,5 @@ public class CreateTossPayRequest {
     private String amount;
     private String orderId;
     private Long memberId;
-    private Long wellnessLectureId;
+//    private Long wellnessLectureId;
 }

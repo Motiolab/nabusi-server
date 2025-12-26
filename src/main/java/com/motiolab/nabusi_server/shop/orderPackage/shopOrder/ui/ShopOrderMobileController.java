@@ -3,7 +3,7 @@ package com.motiolab.nabusi_server.shop.orderPackage.shopOrder.ui;
 import com.motiolab.nabusi_server.argumentResolver.MemberId;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.ShopOrderMobileService;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderMobileDto;
-import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CreateOrderMobileRequestV1;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CreateOrderWithPaymentConfirmMobileRequestV1;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.ValidateOrderMobileRequestV1;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.response.GetShopOrderListByMemberIdMobileResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +17,11 @@ import java.util.List;
 public class ShopOrderMobileController {
     private final ShopOrderMobileService shopOrderMobileService;
 
-    @PostMapping("/v1/mobile/shop/order")
-    public ResponseEntity<ShopOrderMobileDto> createOrder(final @MemberId Long memberId,
-            final @RequestBody CreateOrderMobileRequestV1 createOrderMobileRequestV1) {
-        createOrderMobileRequestV1.setMemberId(memberId);
-        final ShopOrderMobileDto shopOrderMobileDto = shopOrderMobileService.create(createOrderMobileRequestV1);
+    @PostMapping("/v1/mobile/shop/order/payment/confirm")
+    public ResponseEntity<ShopOrderMobileDto> createOrderWithPaymentConfirm(final @MemberId Long memberId,
+            final @RequestBody CreateOrderWithPaymentConfirmMobileRequestV1 createOrderWithPaymentConfirmMobileRequestV1) {
+        createOrderWithPaymentConfirmMobileRequestV1.setMemberId(memberId);
+        final ShopOrderMobileDto shopOrderMobileDto = shopOrderMobileService.createOrderWithPaymentConfirm(createOrderWithPaymentConfirmMobileRequestV1);
         return ResponseEntity.ok(shopOrderMobileDto);
     }
 

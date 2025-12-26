@@ -4,8 +4,11 @@ import com.motiolab.nabusi_server.argumentResolver.MemberId;
 import com.motiolab.nabusi_server.reservation.application.ReservationMobileService;
 import com.motiolab.nabusi_server.reservation.application.dto.request.CancelReservationMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationMobileRequestV1;
+import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationWithPaymentConfirmMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.response.*;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderMobileDto;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CreateOrderWithPaymentConfirmMobileRequestV1;
 import com.motiolab.nabusi_server.util.WellnessLectureReviewUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +29,14 @@ public class ReservationMobileController {
         createReservationMobileRequestV1.setStatus(ReservationStatus.INAPP_RESERVATION);
         reservationMobileService.createReservation(createReservationMobileRequestV1);
         return ResponseEntity.ok(CreateReservationAdminResponseV1.builder().success(true).build());
+    }
+
+    @PostMapping("/v1/mobile/reservation/payment/confirm")
+    public ResponseEntity<CreateReservationWithPaymentConfirmMobileResponseV1> createReservationWithPaymentConfirm(final @MemberId Long memberId,
+                                                                            final @RequestBody CreateReservationWithPaymentConfirmMobileRequestV1 createReservationWithPaymentConfirmMobileRequestV1) {
+        createReservationWithPaymentConfirmMobileRequestV1.setMemberId(memberId);
+        reservationMobileService.createReservationWithPaymentConfirm(createReservationWithPaymentConfirmMobileRequestV1);
+        return ResponseEntity.ok(CreateReservationWithPaymentConfirmMobileResponseV1.builder().success(true).build());
     }
 
     @PutMapping("/v1/mobile/reservation/cancel")

@@ -6,7 +6,7 @@ import com.motiolab.nabusi_server.memberPackage.memberPointHistory.application.d
 import com.motiolab.nabusi_server.memberPackage.memberPointHistory.domain.PointTransactionType;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderDto;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderMobileDto;
-import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CreateOrderMobileRequestV1;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CreateOrderWithPaymentConfirmMobileRequestV1;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.ValidateOrderMobileRequestV1;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrderItem.application.ShopOrderItemService;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrderItem.application.dto.ShopOrderItemDto;
@@ -17,11 +17,17 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import com.motiolab.nabusi_server.exception.customException.InsufficientStockException;
+import com.motiolab.nabusi_server.exception.customException.PaymentFailureException;
 import com.motiolab.nabusi_server.shop.productPackage.shopProductVariant.application.ShopProductVariantService;
 import com.motiolab.nabusi_server.shop.productPackage.shopProductVariant.application.dto.ShopProductVariantDto;
 import com.motiolab.nabusi_server.shop.productPackage.shopProduct.application.ShopProductService;
 import com.motiolab.nabusi_server.shop.cartPackage.shopCart.application.ShopCartService;
 import com.motiolab.nabusi_server.shop.cartPackage.shopCart.domain.CartStatus;
+import com.motiolab.nabusi_server.paymentPackage.payment.application.PaymentMobileService;
+import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request.CreateTossPayRequest;
+import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.PaymentDto;
+import com.motiolab.nabusi_server.fcmTokenMobile.application.FcmTokenMobileService;
+import com.motiolab.nabusi_server.notificationPackage.notificationFcm.application.NotificationFcmAdminService;
 
 @Service
 @RequiredArgsConstructor
@@ -33,18 +39,27 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
         private final ShopProductVariantService shopProductVariantService;
         private final ShopProductService shopProductService;
         private final ShopCartService shopCartService;
+        private final PaymentMobileService paymentMobileService;
+        private final FcmTokenMobileService fcmTokenMobileService;
+        private final NotificationFcmAdminService notificationFcmAdminService;
 
         @Transactional
         @Override
-        public ShopOrderMobileDto create(CreateOrderMobileRequestV1 createOrderMobileRequestV1) {
-                final List<ShopProductVariantDto> shopProductVariantDtoList = shopProductVariantService.getAllByIdList(
-                                createOrderMobileRequestV1.getItemList().stream()
-                                                .map(CreateOrderMobileRequestV1.Item::getShopProductVariantId)
-                                                .toList());
+        public ShopOrderMobileDto createOrderWithPaymentConfirm(
+                        CreateOrderWithPaymentConfirmMobileRequestV1 createOrderWithPaymentConfirmMobileRequestV1) {
+                this.validateOrder(ValidateOrderMobileRequestV1.builder()
+                                .itemList(createOrderWithPaymentConfirmMobileRequestV1.getItemList().stream()
+                                                .map(item -> ValidateOrderMobileRequestV1.Item.builder()
+                                                                .shopProductVariantId(item.getShopProductVariantId())
+                                                                .quantity(item.getQuantity())
+                                                                .build())
+                                                .toList())
+                                .build());
 
-                if (shopProductVariantDtoList.size() != createOrderMobileRequestV1.getItemList().size()) {
-                        throw new InsufficientStockException("재고가 부족합니다.");
-                }
+                final List<ShopProductVariantDto> shopProductVariantDtoList = shopProductVariantService.getAllByIdList(
+                                createOrderWithPaymentConfirmMobileRequestV1.getItemList().stream()
+                                                .map(CreateOrderWithPaymentConfirmMobileRequestV1.Item::getShopProductVariantId)
+                                                .toList());
 
                 final List<ShopProductVariantDto> updatedShopProductVariantDtoList = shopProductVariantDtoList.stream()
                                 .map(it -> shopProductVariantService.update(ShopProductVariantDto.builder()
@@ -55,14 +70,17 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
                                                 .display(it.getDisplay())
                                                 .selling(it.getSelling())
                                                 .displaySoldOut(it.getDisplaySoldOut())
-                                                .quantity(it.getQuantity() - createOrderMobileRequestV1.getItemList()
-                                                                .stream()
-                                                                .filter(item -> item.getShopProductVariantId()
-                                                                                .equals(it.getId()))
-                                                                .findFirst()
-                                                                .orElseThrow(() -> new InsufficientStockException(
-                                                                                "재고가 부족합니다."))
-                                                                .getQuantity())
+                                                .quantity(it.getQuantity()
+                                                                - createOrderWithPaymentConfirmMobileRequestV1
+                                                                                .getItemList()
+                                                                                .stream()
+                                                                                .filter(item -> item
+                                                                                                .getShopProductVariantId()
+                                                                                                .equals(it.getId()))
+                                                                                .findFirst()
+                                                                                .orElseThrow(() -> new InsufficientStockException(
+                                                                                                "재고가 부족합니다."))
+                                                                                .getQuantity())
                                                 .build()))
                                 .toList();
 
@@ -80,23 +98,41 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
                                         }
                                 });
 
+                final PaymentDto paymentDto = paymentMobileService.createReservationWithTossPay(CreateTossPayRequest
+                                .builder()
+                                .paymentKey(createOrderWithPaymentConfirmMobileRequestV1.getPaymentKey())
+                                .amount(createOrderWithPaymentConfirmMobileRequestV1.getAmount())
+                                .orderId(createOrderWithPaymentConfirmMobileRequestV1.getOrderId())
+                                .memberId(createOrderWithPaymentConfirmMobileRequestV1.getMemberId())
+                                .build());
+
+                if (paymentDto == null) {
+                        throw new PaymentFailureException("결제 승인 요청에 실패했습니다.");
+                }
+
                 final ShopOrderDto shopOrderDto = ShopOrderDto.builder()
-                                .memberId(createOrderMobileRequestV1.getMemberId())
-                                .paymentId(createOrderMobileRequestV1.getPaymentId())
-                                .purchaseConfirmation(createOrderMobileRequestV1.getPurchaseConfirmation())
-                                .status(createOrderMobileRequestV1.getStatus())
-                                .totalPrice(createOrderMobileRequestV1.getTotalPrice())
-                                .totalDiscountPrice(createOrderMobileRequestV1.getTotalDiscountPrice())
-                                .totalAdditionalPrice(createOrderMobileRequestV1.getTotalAdditionalPrice())
-                                .receiverName(createOrderMobileRequestV1.getReceiverName())
-                                .receiverPhone(createOrderMobileRequestV1.getReceiverPhone())
-                                .receiverAddress(createOrderMobileRequestV1.getReceiverAddress())
-                                .receiverAddressCode(createOrderMobileRequestV1.getReceiverAddressCode())
-                                .receiverDetailAddress(createOrderMobileRequestV1.getReceiverDetailAddress())
+                                .memberId(createOrderWithPaymentConfirmMobileRequestV1.getMemberId())
+                                .paymentId(paymentDto.getId())
+                                .purchaseConfirmation(
+                                                createOrderWithPaymentConfirmMobileRequestV1.getPurchaseConfirmation())
+                                .status(createOrderWithPaymentConfirmMobileRequestV1.getStatus())
+                                .totalPrice(createOrderWithPaymentConfirmMobileRequestV1.getTotalPrice())
+                                .totalDiscountPrice(
+                                                createOrderWithPaymentConfirmMobileRequestV1.getTotalDiscountPrice())
+                                .totalAdditionalPrice(
+                                                createOrderWithPaymentConfirmMobileRequestV1.getTotalAdditionalPrice())
+                                .receiverName(createOrderWithPaymentConfirmMobileRequestV1.getReceiverName())
+                                .receiverPhone(createOrderWithPaymentConfirmMobileRequestV1.getReceiverPhone())
+                                .receiverAddress(createOrderWithPaymentConfirmMobileRequestV1.getReceiverAddress())
+                                .receiverAddressCode(
+                                                createOrderWithPaymentConfirmMobileRequestV1.getReceiverAddressCode())
+                                .receiverDetailAddress(
+                                                createOrderWithPaymentConfirmMobileRequestV1.getReceiverDetailAddress())
                                 .build();
 
                 final ShopOrderDto storedShopOrderDto = shopOrderService.save(shopOrderDto);
-                final List<ShopOrderItemDto> shopOrderItemDtoList = createOrderMobileRequestV1.getItemList()
+                final List<ShopOrderItemDto> shopOrderItemDtoList = createOrderWithPaymentConfirmMobileRequestV1
+                                .getItemList()
                                 .stream()
                                 .map(item -> ShopOrderItemDto.builder()
                                                 .shopOrderId(storedShopOrderDto.getId())
@@ -117,31 +153,37 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
                 final List<ShopOrderItemDto> storedShopOrderItemDtoList = shopOrderItemService
                                 .saveAll(shopOrderItemDtoList);
 
-                if (createOrderMobileRequestV1.getShopCartId() != null) {
-                        shopCartService.updateStatus(createOrderMobileRequestV1.getShopCartId(),
+                if (createOrderWithPaymentConfirmMobileRequestV1.getShopCartId() != null) {
+                        shopCartService.updateStatus(createOrderWithPaymentConfirmMobileRequestV1.getShopCartId(),
                                         CartStatus.COMPLETE_ORDER);
                 }
 
-                if (createOrderMobileRequestV1.getUsedPoint() > 0) {
-                        memberPointService.addPoint(createOrderMobileRequestV1.getMemberId(),
-                                        createOrderMobileRequestV1.getUsedPoint());
+                if (createOrderWithPaymentConfirmMobileRequestV1.getUsedPoint() > 0) {
+                        memberPointService.addPoint(createOrderWithPaymentConfirmMobileRequestV1.getMemberId(),
+                                        createOrderWithPaymentConfirmMobileRequestV1.getUsedPoint());
                         memberPointHistoryService.create(MemberPointHistoryDto.builder()
-                                        .memberId(createOrderMobileRequestV1.getMemberId())
-                                        .amount(createOrderMobileRequestV1.getUsedPoint())
+                                        .memberId(createOrderWithPaymentConfirmMobileRequestV1.getMemberId())
+                                        .amount(createOrderWithPaymentConfirmMobileRequestV1.getUsedPoint())
                                         .transactionType(PointTransactionType.USE)
                                         .description("주문 시 포인트 사용")
                                         .referenceId("paymentID")
                                         .build());
-                } else if (createOrderMobileRequestV1.getRewardPoint() > 0) {
-                        memberPointService.addPoint(createOrderMobileRequestV1.getMemberId(),
-                                        createOrderMobileRequestV1.getRewardPoint());
+                } else if (createOrderWithPaymentConfirmMobileRequestV1.getRewardPoint() > 0) {
+                        memberPointService.addPoint(createOrderWithPaymentConfirmMobileRequestV1.getMemberId(),
+                                        createOrderWithPaymentConfirmMobileRequestV1.getRewardPoint());
                         memberPointHistoryService.create(MemberPointHistoryDto.builder()
-                                        .memberId(createOrderMobileRequestV1.getMemberId())
-                                        .amount(createOrderMobileRequestV1.getRewardPoint())
+                                        .memberId(createOrderWithPaymentConfirmMobileRequestV1.getMemberId())
+                                        .amount(createOrderWithPaymentConfirmMobileRequestV1.getRewardPoint())
                                         .transactionType(PointTransactionType.EARN)
                                         .description("주문 시 포인트 적립")
                                         .referenceId("paymentID")
                                         .build());
+                }
+
+                final String fcmToken = fcmTokenMobileService
+                                .getFcmTokenByMemberId(createOrderWithPaymentConfirmMobileRequestV1.getMemberId());
+                if (fcmToken != null) {
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "주문 완료", "주문이 완료되었습니다.");
                 }
 
                 return ShopOrderMobileDto.builder()

@@ -53,9 +53,7 @@ public class PaymentMobileServiceImpl implements PaymentMobileService {
     private final ReservationService reservationService;
 
     @Override
-    public void createReservationWithTossPay(CreateTossPayRequest createTossPayRequest) {
-        // todo 예약 정책에서 예약 가능한 시간인지 체크하는 로직 추가
-
+    public PaymentDto createReservationWithTossPay(CreateTossPayRequest createTossPayRequest) {
         String url = "https://api.tosspayments.com/v1/payments/confirm";
 
         final String authKey = Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
@@ -113,7 +111,7 @@ public class PaymentMobileServiceImpl implements PaymentMobileService {
 
                 final TossPayDto tossPayDto = TossPayDto.builder()
                         .memberId(createTossPayRequest.getMemberId())
-                        .wellnessLectureId(createTossPayRequest.getWellnessLectureId())
+                        .wellnessLectureId(0L)
                         .mId(tossPayResponse.getMId())
                         .lastTransactionKey(tossPayResponse.getLastTransactionKey())
                         .paymentKey(tossPayResponse.getPaymentKey())
@@ -148,28 +146,7 @@ public class PaymentMobileServiceImpl implements PaymentMobileService {
                         .tossPayId(savedTossPayDto.getId())
                         .status(PaymentStatusEnum.PAID)
                         .build();
-                final PaymentDto savedPaymentDto = paymentService.create(paymentDto);
-
-                //todo 아래 코드는 컨트롤러 하나 추가해서 따로 관리
-                if (createTossPayRequest.getWellnessLectureId() == 0) {
-                    return;
-                }
-
-                Long centerId = java.util.Optional
-                        .ofNullable(wellnessLectureService.getById(createTossPayRequest.getWellnessLectureId()))
-                        .map(WellnessLectureDto::getCenterId)
-                        .orElse(0L);
-
-                final ReservationDto reservationDto = ReservationDto.builder()
-                        .centerId(centerId)
-                        .memberId(createTossPayRequest.getMemberId())
-                        .actionMemberId(createTossPayRequest.getMemberId())
-                        .status(ReservationStatus.INAPP_PAYMENT_RESERVATION)
-                        .wellnessLectureId(createTossPayRequest.getWellnessLectureId())
-                        .paymentId(savedPaymentDto.getId())
-                        .build();
-
-                reservationService.create(reservationDto);
+                return paymentService.create(paymentDto);
             } catch (Exception e) {
                 e.printStackTrace(); // JSON 파싱 예외 처리
             }
@@ -187,6 +164,7 @@ public class PaymentMobileServiceImpl implements PaymentMobileService {
                 System.out.println(tossPayFailureRequest.getMessage());
             }
         }
+        return null;
     }
 
     @Override
