@@ -36,7 +36,6 @@ public class WellnessLectureMobileController {
 
         Boolean isReserved = wellnessLectureMobileDto.getMyReservationDto() != null &&
                 (wellnessLectureMobileDto.getMyReservationDto().getStatus() == ReservationStatus.INAPP_RESERVATION ||
-                        wellnessLectureMobileDto.getMyReservationDto().getStatus() == ReservationStatus.INAPP_PAYMENT_RESERVATION ||
                         wellnessLectureMobileDto.getMyReservationDto().getStatus() == ReservationStatus.ADMIN_RESERVATION ||
                         wellnessLectureMobileDto.getMyReservationDto().getStatus() == ReservationStatus.ONSITE_RESERVATION);
 

@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ReservationStatus {
     INAPP_RESERVATION("인앱 예약"),
-    INAPP_PAYMENT_RESERVATION("인앱 결제 예약"),
     ADMIN_RESERVATION("관리자 예약"),
     ONSITE_RESERVATION("현장 예약"),
     MEMBER_CANCELED_RESERVATION("회원 예약 취소"),
