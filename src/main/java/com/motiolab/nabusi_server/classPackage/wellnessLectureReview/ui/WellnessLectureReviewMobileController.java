@@ -103,6 +103,16 @@ public class WellnessLectureReviewMobileController {
                                 .memberReviewCnt(wellnessLectureReviewMobileDto.getMemberDtoExtension()
                                         .getWellnessLectureReviewDtoList().size())
                                 .isCreateCommentAvailable(wellnessLectureReviewMobileDto.getIsCreateCommentAvailable())
+                                .wellnessLectureReviewCommentResponseList(wellnessLectureReviewMobileDto
+                                        .getWellnessLectureReviewCommentDtoList()
+                                        .stream()
+                                        .map(wellnessLectureReviewCommentDto -> GetWellnessLectureReviewListByTypeAndIdResponse.WellnessLectureReviewCommentResponse
+                                                .builder()
+                                                .id(wellnessLectureReviewCommentDto.getId())
+                                                .content(wellnessLectureReviewCommentDto.getContent())
+                                                .memberId(wellnessLectureReviewCommentDto.getMemberId())
+                                                .build())
+                                        .toList())
                                 .build())
                         .toList())
                 .build();

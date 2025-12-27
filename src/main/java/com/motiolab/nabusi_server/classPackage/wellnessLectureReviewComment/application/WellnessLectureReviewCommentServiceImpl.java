@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class WellnessLectureReviewCommentServiceImpl implements WellnessLectureReviewCommentService {
@@ -19,5 +21,11 @@ public class WellnessLectureReviewCommentServiceImpl implements WellnessLectureR
                 memberId, content);
         wellnessLectureReviewCommentRepository.save(entity);
         return WellnessLectureReviewCommentDto.from(entity);
+    }
+
+    @Override
+    public List<WellnessLectureReviewCommentDto> getAllByWellnessLectureReviewId(Long wellnessLectureReviewId) {
+        final List<WellnessLectureReviewCommentEntity> wellnessLectureReviewCommentEntityList = wellnessLectureReviewCommentRepository.findAllByWellnessLectureReviewId(wellnessLectureReviewId);
+        return wellnessLectureReviewCommentEntityList.stream().map(WellnessLectureReviewCommentDto::from).toList();
     }
 }

@@ -26,5 +26,14 @@ public class GetWellnessLectureReviewListByTypeAndIdResponse {
         private Integer memberCheckInCnt;
         private Integer memberReviewCnt;
         private Boolean isCreateCommentAvailable;
+        private List<WellnessLectureReviewCommentResponse> wellnessLectureReviewCommentResponseList;
+    }
+
+    @Builder
+    @Getter
+    public static class WellnessLectureReviewCommentResponse {
+        private Long id;
+        private String content;
+        private Long memberId;
     }
 }

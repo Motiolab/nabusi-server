@@ -211,6 +211,7 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
                     return WellnessLectureReviewMobileDto.builder()
                             .wellnessLectureReviewDto(wellnessLectureReviewDto)
                             .isCreateCommentAvailable(isCreateCommentAvailable)
+                            .wellnessLectureReviewCommentDtoList(wellnessLectureReviewCommentService.getAllByWellnessLectureReviewId(wellnessLectureReviewDto.getId()))
                             .memberDtoExtension(
                                     WellnessLectureReviewMobileDto.MemberDtoExtension.builder()
                                             .memberDto(targetMemberDto)
