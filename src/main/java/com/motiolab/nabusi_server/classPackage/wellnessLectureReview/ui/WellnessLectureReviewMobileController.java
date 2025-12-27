@@ -10,6 +10,7 @@ import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.response.GetWellnessLectureReviewByIdMobileResponse;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.response.GetWellnessLectureReviewListByTypeAndIdResponse;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.response.UpdateWellnessLectureReviewResponse;
+import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.dto.request.CreateWellnessLectureReviewCommentMobileRequest;
 import com.motiolab.nabusi_server.util.WellnessLectureReviewUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +53,12 @@ public class WellnessLectureReviewMobileController {
         wellnessLectureReviewMobileService.updateWellnessLectureReview(memberId,
                 updateWellnessLectureReviewMobileRequest);
         return ResponseEntity.ok(UpdateWellnessLectureReviewResponse.builder().success(true).build());
+    }
+
+    @PostMapping("/v1/mobile/wellness-lecture-review/comment/create")
+    public ResponseEntity<Void> createComment(@MemberId Long memberId, @RequestBody CreateWellnessLectureReviewCommentMobileRequest createWellnessLectureReviewCommentMobileRequest) {
+        wellnessLectureReviewMobileService.createComment(memberId, createWellnessLectureReviewCommentMobileRequest);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/v1/mobile/wellness-lecture-review/{type}/{id}")

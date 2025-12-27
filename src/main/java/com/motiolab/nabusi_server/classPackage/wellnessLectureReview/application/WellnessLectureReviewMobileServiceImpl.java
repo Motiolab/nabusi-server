@@ -9,18 +9,21 @@ import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.WellnessLectureReviewMobileDto;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.request.CreateWellnessLectureReviewMobileRequest;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.request.UpdateWellnessLectureReviewMobileRequest;
+import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.WellnessLectureReviewCommentService;
+import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.dto.request.CreateWellnessLectureReviewCommentMobileRequest;
 import com.motiolab.nabusi_server.exception.customException.ExistsAlreadyException;
+import com.motiolab.nabusi_server.exception.customException.NoAuthorityException;
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
 import com.motiolab.nabusi_server.exception.customException.NotMemberException;
+import com.motiolab.nabusi_server.fcmTokenMobile.application.FcmTokenMobileService;
 import com.motiolab.nabusi_server.memberPackage.member.application.MemberService;
 import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
+import com.motiolab.nabusi_server.notificationPackage.notificationFcm.application.NotificationFcmAdminService;
 import com.motiolab.nabusi_server.reservation.application.ReservationService;
 import com.motiolab.nabusi_server.reservation.application.dto.ReservationDto;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.teacher.application.TeacherService;
 import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
-import com.motiolab.nabusi_server.teacher.domain.TeacherEntity;
-import com.motiolab.nabusi_server.teacher.domain.TeacherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +39,9 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
     private final ReservationService reservationService;
     private final MemberService memberService;
     private final TeacherService teacherService;
+    private final WellnessLectureReviewCommentService wellnessLectureReviewCommentService;
+    private final FcmTokenMobileService fcmTokenMobileService;
+    private final NotificationFcmAdminService notificationFcmAdminService;
 
     @Override
     public void createWellnessLectureReview(Long memberId,
@@ -79,6 +85,12 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
                 .build();
 
         wellnessLectureReviewService.create(newWellnessLectureReviewDto);
+
+        final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
+        if (fcmToken != null) {
+            notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "리뷰 등록 완료",
+                    "리뷰 등록이 성공적으로 완료되었습니다.");
+        }
     }
 
     @Override
@@ -112,7 +124,8 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
     }
 
     @Override
-    public List<WellnessLectureReviewMobileDto> getWellnessLectureReviewListByTypeAndId(Long memberId, String type, Long id) {
+    public List<WellnessLectureReviewMobileDto> getWellnessLectureReviewListByTypeAndId(Long memberId, String type,
+            Long id) {
         if (type.equals("wellness_class")) {
             final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
                     .getAllByWellnessClassId(id);
@@ -186,11 +199,14 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
 
                     final TeacherDto targetTeacherDto = teacherDtoList
                             .stream()
-                            .filter(teacherDto -> Objects.equals(teacherDto.getId(), wellnessLectureReviewDto.getTeacherId()))
+                            .filter(teacherDto -> Objects.equals(teacherDto.getId(),
+                                    wellnessLectureReviewDto.getTeacherId()))
                             .findFirst()
                             .orElse(null);
 
-                    final Boolean isCreateCommentAvailable = Objects.equals(Objects.requireNonNull(targetTeacherDto).getMemberId(), memberId) || Objects.equals(targetMemberDto.getId(), memberId);
+                    final Boolean isCreateCommentAvailable = Objects
+                            .equals(Objects.requireNonNull(targetTeacherDto).getMemberId(), memberId)
+                            || Objects.equals(targetMemberDto.getId(), memberId);
 
                     return WellnessLectureReviewMobileDto.builder()
                             .wellnessLectureReviewDto(wellnessLectureReviewDto)
@@ -203,5 +219,28 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
                                             .build())
                             .build();
                 }).toList();
+    }
+
+    @Override
+    public void createComment(Long memberId,
+            CreateWellnessLectureReviewCommentMobileRequest createWellnessLectureReviewCommentMobileRequest) {
+        final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
+                .getById(createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId());
+        final TeacherDto teacherDto = teacherService.getById(wellnessLectureReviewDto.getTeacherId());
+
+        final boolean isCreateCommentAvailable = Objects.equals(teacherDto.getMemberId(), memberId)
+                || Objects.equals(wellnessLectureReviewDto.getMemberId(), memberId);
+
+        if (!isCreateCommentAvailable) {
+            throw new NoAuthorityException(WellnessLectureReviewDto.class, createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId());
+        }
+
+        wellnessLectureReviewCommentService.create(createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId(), memberId, createWellnessLectureReviewCommentMobileRequest.getContent());
+
+        final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
+        if (fcmToken != null) {
+            notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "답변 등록 완료",
+                    "답변 등록이 성공적으로 완료되었습니다.");
+        }
     }
 }

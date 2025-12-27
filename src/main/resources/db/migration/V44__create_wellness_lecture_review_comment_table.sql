@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS wellness_lecture_review_comment (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    wellness_lecture_review_id BIGINT NOT NULL,
+    member_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    is_delete BOOLEAN NOT NULL DEFAULT FALSE,
+    last_updated_date DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    created_date DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+);

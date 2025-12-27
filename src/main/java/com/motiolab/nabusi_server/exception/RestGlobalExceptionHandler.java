@@ -72,4 +72,13 @@ public class RestGlobalExceptionHandler {
                 .body(ex.getMessage());
     }
 
+    @ExceptionHandler(com.motiolab.nabusi_server.exception.customException.NoAuthorityException.class)
+    public ResponseEntity<String> handleNoAuthorityException(
+            com.motiolab.nabusi_server.exception.customException.NoAuthorityException ex) {
+        log.error(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ex.getMessage());
+    }
+
 }

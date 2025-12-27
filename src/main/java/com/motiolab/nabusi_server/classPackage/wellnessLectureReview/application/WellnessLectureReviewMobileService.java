@@ -16,4 +16,7 @@ public interface WellnessLectureReviewMobileService {
             UpdateWellnessLectureReviewMobileRequest updateWellnessLectureReviewMobileRequest);
 
     List<WellnessLectureReviewMobileDto> getWellnessLectureReviewListByTypeAndId(Long memberId, String type, Long id);
+
+    void createComment(Long memberId,
+            com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.dto.request.CreateWellnessLectureReviewCommentMobileRequest request);
 }
