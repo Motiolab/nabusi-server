@@ -23,15 +23,20 @@ public class WellnessLectureReviewMobileController {
     private final WellnessLectureReviewMobileService wellnessLectureReviewMobileService;
 
     @PostMapping("/v1/mobile/wellness-lecture-review/create")
-    public ResponseEntity<CreateWellnessLectureReviewResponse> createWellnessLectureReview(@MemberId Long memberId, @RequestBody CreateWellnessLectureReviewMobileRequest createWellnessLectureReviewMobileRequest) {
-        wellnessLectureReviewMobileService.createWellnessLectureReview(memberId, createWellnessLectureReviewMobileRequest);
+    public ResponseEntity<CreateWellnessLectureReviewResponse> createWellnessLectureReview(@MemberId Long memberId,
+            @RequestBody CreateWellnessLectureReviewMobileRequest createWellnessLectureReviewMobileRequest) {
+        wellnessLectureReviewMobileService.createWellnessLectureReview(memberId,
+                createWellnessLectureReviewMobileRequest);
         return ResponseEntity.ok(CreateWellnessLectureReviewResponse.builder().success(true).build());
     }
 
     @GetMapping("/v1/mobile/wellness-lecture-review/{wellnessLectureReviewId}")
-    public ResponseEntity<GetWellnessLectureReviewByIdMobileResponse> getWellnessLectureReviewById(@PathVariable Long wellnessLectureReviewId) {
-        final WellnessLectureReviewMobileDto wellnessLectureReviewMobileDto = wellnessLectureReviewMobileService.getWellnessLectureReviewById(wellnessLectureReviewId);
-        final GetWellnessLectureReviewByIdMobileResponse getWellnessLectureReviewByIdMobileResponse = GetWellnessLectureReviewByIdMobileResponse.builder()
+    public ResponseEntity<GetWellnessLectureReviewByIdMobileResponse> getWellnessLectureReviewById(
+            @PathVariable Long wellnessLectureReviewId) {
+        final WellnessLectureReviewMobileDto wellnessLectureReviewMobileDto = wellnessLectureReviewMobileService
+                .getWellnessLectureReviewById(wellnessLectureReviewId);
+        final GetWellnessLectureReviewByIdMobileResponse getWellnessLectureReviewByIdMobileResponse = GetWellnessLectureReviewByIdMobileResponse
+                .builder()
                 .id(wellnessLectureReviewMobileDto.getWellnessLectureReviewDto().getId())
                 .content(wellnessLectureReviewMobileDto.getWellnessLectureReviewDto().getContent())
                 .isPrivate(wellnessLectureReviewMobileDto.getWellnessLectureReviewDto().getIsPrivate())
@@ -42,23 +47,34 @@ public class WellnessLectureReviewMobileController {
     }
 
     @PutMapping("/v1/mobile/wellness-lecture-review/update")
-    public ResponseEntity<UpdateWellnessLectureReviewResponse> updateWellnessLectureReview(@MemberId Long memberId, @RequestBody UpdateWellnessLectureReviewMobileRequest updateWellnessLectureReviewMobileRequest) {
-        wellnessLectureReviewMobileService.updateWellnessLectureReview(memberId, updateWellnessLectureReviewMobileRequest);
+    public ResponseEntity<UpdateWellnessLectureReviewResponse> updateWellnessLectureReview(@MemberId Long memberId,
+            @RequestBody UpdateWellnessLectureReviewMobileRequest updateWellnessLectureReviewMobileRequest) {
+        wellnessLectureReviewMobileService.updateWellnessLectureReview(memberId,
+                updateWellnessLectureReviewMobileRequest);
         return ResponseEntity.ok(UpdateWellnessLectureReviewResponse.builder().success(true).build());
     }
 
     @GetMapping("/v1/mobile/wellness-lecture-review/{type}/{id}")
-    public ResponseEntity<GetWellnessLectureReviewListByTypeAndIdResponse> getWellnessLectureReviewListByTypeAndId(@PathVariable String type, @PathVariable Long id) {
-        final List<WellnessLectureReviewMobileDto> wellnessLectureReviewMobileDtoList = wellnessLectureReviewMobileService.getWellnessLectureReviewListByTypeAndId(type, id);
-        final Integer fiveRatingCnt = wellnessLectureReviewMobileDtoList.stream().filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 5).toList().size();
-        final Integer fourRatingCnt = wellnessLectureReviewMobileDtoList.stream().filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 4).toList().size();
-        final Integer threeRatingCnt = wellnessLectureReviewMobileDtoList.stream().filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 3).toList().size();
-        final Integer twoRatingCnt = wellnessLectureReviewMobileDtoList.stream().filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 2).toList().size();
-        final Integer oneRatingCnt = wellnessLectureReviewMobileDtoList.stream().filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 1).toList().size();
-        final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewMobileDtoList.stream().map(WellnessLectureReviewMobileDto::getWellnessLectureReviewDto).toList();
+    public ResponseEntity<GetWellnessLectureReviewListByTypeAndIdResponse> getWellnessLectureReviewListByTypeAndId(
+            @MemberId Long memberId, @PathVariable String type, @PathVariable Long id) {
+        final List<WellnessLectureReviewMobileDto> wellnessLectureReviewMobileDtoList = wellnessLectureReviewMobileService
+                .getWellnessLectureReviewListByTypeAndId(memberId, type, id);
+        final Integer fiveRatingCnt = wellnessLectureReviewMobileDtoList.stream()
+                .filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 5).toList().size();
+        final Integer fourRatingCnt = wellnessLectureReviewMobileDtoList.stream()
+                .filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 4).toList().size();
+        final Integer threeRatingCnt = wellnessLectureReviewMobileDtoList.stream()
+                .filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 3).toList().size();
+        final Integer twoRatingCnt = wellnessLectureReviewMobileDtoList.stream()
+                .filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 2).toList().size();
+        final Integer oneRatingCnt = wellnessLectureReviewMobileDtoList.stream()
+                .filter(dto -> dto.getWellnessLectureReviewDto().getRating() == 1).toList().size();
+        final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewMobileDtoList.stream()
+                .map(WellnessLectureReviewMobileDto::getWellnessLectureReviewDto).toList();
         final Double avrageRating = WellnessLectureReviewUtils.calculateAverageRating(wellnessLectureReviewDtoList);
 
-        final GetWellnessLectureReviewListByTypeAndIdResponse response = GetWellnessLectureReviewListByTypeAndIdResponse.builder()
+        final GetWellnessLectureReviewListByTypeAndIdResponse response = GetWellnessLectureReviewListByTypeAndIdResponse
+                .builder()
                 .avrageRating(avrageRating)
                 .fiveRatingCnt(fiveRatingCnt)
                 .fourRatingCnt(fourRatingCnt)
@@ -67,14 +83,19 @@ public class WellnessLectureReviewMobileController {
                 .oneRatingCnt(oneRatingCnt)
                 .wellnessLectureReviewResponseList(wellnessLectureReviewMobileDtoList
                         .stream()
-                        .filter(wellnessLectureReviewMobileDto -> !wellnessLectureReviewMobileDto.getWellnessLectureReviewDto().getIsPrivate())
-                        .map(wellnessLectureReviewMobileDto -> GetWellnessLectureReviewListByTypeAndIdResponse.WellnessLectureReviewResponse.builder()
+                        .filter(wellnessLectureReviewMobileDto -> !wellnessLectureReviewMobileDto
+                                .getWellnessLectureReviewDto().getIsPrivate())
+                        .map(wellnessLectureReviewMobileDto -> GetWellnessLectureReviewListByTypeAndIdResponse.WellnessLectureReviewResponse
+                                .builder()
                                 .id(wellnessLectureReviewMobileDto.getWellnessLectureReviewDto().getId())
                                 .content(wellnessLectureReviewMobileDto.getWellnessLectureReviewDto().getContent())
                                 .rating(wellnessLectureReviewMobileDto.getWellnessLectureReviewDto().getRating())
                                 .memberId(wellnessLectureReviewMobileDto.getMemberDtoExtension().getMemberDto().getId())
-                                .memberCheckInCnt(wellnessLectureReviewMobileDto.getMemberDtoExtension().getReservationDtoList().size())
-                                .memberReviewCnt(wellnessLectureReviewMobileDto.getMemberDtoExtension().getWellnessLectureReviewDtoList().size())
+                                .memberCheckInCnt(wellnessLectureReviewMobileDto.getMemberDtoExtension()
+                                        .getReservationDtoList().size())
+                                .memberReviewCnt(wellnessLectureReviewMobileDto.getMemberDtoExtension()
+                                        .getWellnessLectureReviewDtoList().size())
+                                .isCreateCommentAvailable(wellnessLectureReviewMobileDto.getIsCreateCommentAvailable())
                                 .build())
                         .toList())
                 .build();

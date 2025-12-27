@@ -11,6 +11,7 @@ import java.util.List;
 @Getter
 public class WellnessLectureReviewMobileDto {
     private WellnessLectureReviewDto wellnessLectureReviewDto;
+    private Boolean isCreateCommentAvailable;
     private MemberDtoExtension memberDtoExtension;
 
     @Builder

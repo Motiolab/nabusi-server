@@ -25,5 +25,6 @@ public class GetWellnessLectureReviewListByTypeAndIdResponse {
         private Long memberId;
         private Integer memberCheckInCnt;
         private Integer memberReviewCnt;
+        private Boolean isCreateCommentAvailable;
     }
 }

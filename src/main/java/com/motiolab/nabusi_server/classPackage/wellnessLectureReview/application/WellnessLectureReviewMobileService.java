@@ -7,8 +7,13 @@ import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application
 import java.util.List;
 
 public interface WellnessLectureReviewMobileService {
-    void createWellnessLectureReview(Long memberId, CreateWellnessLectureReviewMobileRequest createWellnessLectureReviewMobileRequest);
+    void createWellnessLectureReview(Long memberId,
+            CreateWellnessLectureReviewMobileRequest createWellnessLectureReviewMobileRequest);
+
     WellnessLectureReviewMobileDto getWellnessLectureReviewById(Long wellnessLectureReviewId);
-    void updateWellnessLectureReview(Long memberId, UpdateWellnessLectureReviewMobileRequest updateWellnessLectureReviewMobileRequest);
-    List<WellnessLectureReviewMobileDto> getWellnessLectureReviewListByTypeAndId(String type, Long id);
+
+    void updateWellnessLectureReview(Long memberId,
+            UpdateWellnessLectureReviewMobileRequest updateWellnessLectureReviewMobileRequest);
+
+    List<WellnessLectureReviewMobileDto> getWellnessLectureReviewListByTypeAndId(Long memberId, String type, Long id);
 }

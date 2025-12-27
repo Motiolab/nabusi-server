@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface TeacherRepository extends JpaRepository<TeacherEntity, Long> {
     List<TeacherEntity> findAllByIdIn(List<Long> idList);
+
     Optional<TeacherEntity> findByCenterIdAndMemberId(Long centerId, Long memberId);
+
     List<TeacherEntity> findAllByCenterId(Long centerId);
 }
