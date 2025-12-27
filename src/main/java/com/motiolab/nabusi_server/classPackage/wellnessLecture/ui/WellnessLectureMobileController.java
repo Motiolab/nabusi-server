@@ -36,7 +36,6 @@ public class WellnessLectureMobileController {
 
         Boolean isReserved = wellnessLectureMobileDto.getMyReservationDto() != null &&
                 (wellnessLectureMobileDto.getMyReservationDto().getStatus() == ReservationStatus.INAPP_RESERVATION ||
-                        wellnessLectureMobileDto.getMyReservationDto().getStatus() == ReservationStatus.INAPP_RESERVATION ||
                         wellnessLectureMobileDto.getMyReservationDto().getStatus() == ReservationStatus.ADMIN_RESERVATION ||
                         wellnessLectureMobileDto.getMyReservationDto().getStatus() == ReservationStatus.ONSITE_RESERVATION);
 
@@ -150,6 +149,8 @@ public class WellnessLectureMobileController {
                         }else if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.CHECK_IN)) {
                             status = "출석";
                         }else if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION)) {
+                            status = "예약취소";
+                        }else if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND)) {
                             status = "예약취소";
                         }else if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)) {
                             status = "예약취소";

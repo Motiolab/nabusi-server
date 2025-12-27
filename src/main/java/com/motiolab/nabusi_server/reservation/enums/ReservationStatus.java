@@ -11,9 +11,11 @@ public enum ReservationStatus {
     ADMIN_RESERVATION("관리자 예약"),
     ONSITE_RESERVATION("현장 예약"),
     MEMBER_CANCELED_RESERVATION("회원 예약 취소"),
+    MEMBER_CANCELED_RESERVATION_REFUND("회원 예약 취소 및 환불"),
     ADMIN_CANCELED_RESERVATION("관리자 예약 취소"),
     CHECK_IN("출석"),
     ABSENT("결석"),
     ;
+
     private final String description;
 }

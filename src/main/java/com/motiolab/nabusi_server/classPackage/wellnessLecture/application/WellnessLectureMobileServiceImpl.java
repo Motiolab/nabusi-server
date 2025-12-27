@@ -90,7 +90,9 @@ public class WellnessLectureMobileServiceImpl implements WellnessLectureMobileSe
                     .myWellnessLectureReviewDto(myWellnessLectureReviewDto)
                     .reservationExtensionList(reservationDtoList
                             .stream()
-                            .filter(reservationDto -> !(reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION) || reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)))
+                            .filter(reservationDto -> !(reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION) ||
+                                    reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND) ||
+                                    reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)))
                             .map(reservationDto -> WellnessLectureMobileDto.ReservationExtension.builder().reservationDto(reservationDto).build())
                             .toList()
                     )
@@ -111,6 +113,7 @@ public class WellnessLectureMobileServiceImpl implements WellnessLectureMobileSe
                             .stream()
                             .filter(reservationDto -> !reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION))
                             .filter(reservationDto -> !reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION))
+                            .filter(reservationDto -> !reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND))
                             .filter(reservationDto -> reservationDto.getWellnessLectureId().equals(wellnessLectureDto.getId()))
                             .toList();
 

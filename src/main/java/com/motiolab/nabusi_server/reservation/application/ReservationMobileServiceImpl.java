@@ -36,7 +36,6 @@ import com.motiolab.nabusi_server.ticketPackage.wellnessTicketIssuanceHistory.ap
 import com.motiolab.nabusi_server.ticketPackage.wellnessTicketManagement.application.WellnessTicketManagementService;
 import com.motiolab.nabusi_server.ticketPackage.wellnessTicketManagement.application.dto.WellnessTicketManagementDto;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.PaymentService;
-import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.PaymentDto;
 import com.motiolab.nabusi_server.paymentPackage.tossPayPackage.tossPay.application.TossPayService;
 import com.motiolab.nabusi_server.paymentPackage.tossPayPackage.tossPay.application.dto.TossPayDto;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request.CancelTossPayRequest;
@@ -403,6 +402,8 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                                 && !(reservationDtoExist.getStatus()
                                                 .equals(ReservationStatus.MEMBER_CANCELED_RESERVATION)
                                                 || reservationDtoExist.getStatus().equals(
+                                                                ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND)
+                                                || reservationDtoExist.getStatus().equals(
                                                                 ReservationStatus.ADMIN_CANCELED_RESERVATION))) {
                         throw new ExistsAlreadyException(ReservationDto.class, request.getWellnessLectureId());
                 }
@@ -418,7 +419,8 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
 
         @Transactional
         @Override
-        public void refundReservation(Long memberId, RefundReservationMobileRequestV1 refundReservationMobileRequestV1) {
+        public void refundReservation(Long memberId,
+                        RefundReservationMobileRequestV1 refundReservationMobileRequestV1) {
                 final ReservationDto reservationDto = reservationService
                                 .getById(refundReservationMobileRequestV1.getReservationId());
                 if (reservationDto == null) {
@@ -436,7 +438,7 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
 
                 final PaymentDto paymentDto = paymentService.getById(reservationDto.getPaymentId());
 
-                if(paymentDto.getTossPayId() == null) {
+                if (paymentDto.getTossPayId() == null) {
                         throw new RuntimeException("토스페이먼츠 결제 정보가 없습니다.");
                 }
                 final TossPayDto tossPayDto = tossPayService.getById(paymentDto.getTossPayId());
@@ -446,13 +448,13 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                                 .reservationId(reservationDto.getId())
                                 .build());
 
-                reservationDto.setStatus(ReservationStatus.MEMBER_CANCELED_RESERVATION);
+                reservationDto.setStatus(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND);
                 reservationService.update(reservationDto);
 
                 final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
                 if (fcmToken != null) {
                         notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "수업 예약 취소 및 환불",
-                                "수업 예약 취소와 환불이 성공적으로 완료되었습니다.");
+                                        "수업 예약 취소와 환불이 성공적으로 완료되었습니다.");
                 }
         }
 
@@ -518,6 +520,8 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                                 .stream()
                                 .filter(reservationDto -> !(reservationDto.getStatus()
                                                 .equals(ReservationStatus.MEMBER_CANCELED_RESERVATION)
+                                                || reservationDto.getStatus()
+                                                                .equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND)
                                                 || reservationDto.getStatus()
                                                                 .equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)))
                                 .toList();
@@ -594,7 +598,9 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                                 .filter(reservationDto -> !(reservationDto.getStatus()
                                                 .equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)
                                                 || reservationDto.getStatus()
-                                                                .equals(ReservationStatus.MEMBER_CANCELED_RESERVATION)))
+                                                                .equals(ReservationStatus.MEMBER_CANCELED_RESERVATION)
+                                                || reservationDto.getStatus()
+                                                                .equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND)))
                                 .toList().size();
 
                 if (reservationCntWithoutCancel >= wellnessLectureDto.getMaxReservationCnt()) {

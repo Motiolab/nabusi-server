@@ -104,7 +104,9 @@ public class ReservationAdminServiceImpl implements ReservationAdminService{
 
         final List<ReservationDto> reservationDtoList = reservationService.getAllByWellnessTicketIssuanceId(wellnessTicketIssuanceDto.getId())
                 .stream()
-                .filter(reservationDto -> !(reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION) || reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)))
+                .filter(reservationDto -> !(reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION) ||
+                        reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND) ||
+                        reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)))
                 .toList();
 
         final List<Long> wellnessLectureIdList = reservationDtoList.stream().map(ReservationDto::getWellnessLectureId).toList();
