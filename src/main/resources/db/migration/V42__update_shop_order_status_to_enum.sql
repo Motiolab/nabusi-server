@@ -1,0 +1,10 @@
+-- Update shop_order status column to ENUM
+ALTER TABLE shop_order MODIFY COLUMN status ENUM(
+    'ORDER_CONFIRMATION_PENDING',
+    'PREPARING_SHIPMENT',
+    'SHIPPING',
+    'DELIVERY_COMPLETE',
+    'PURCHASE_CONFIRMED',
+    'CANCELED',
+    'REFUNDED'
+) NOT NULL;

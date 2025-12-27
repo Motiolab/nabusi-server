@@ -1,5 +1,6 @@
 package com.motiolab.nabusi_server.shop.orderPackage.shopOrder.domain;
 
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.enums.ShopOrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -30,8 +31,9 @@ public class ShopOrderEntity {
     @Column(name = "purchase_confirmation", nullable = false)
     private Boolean purchaseConfirmation;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private ShopOrderStatus status;
 
     @Column(name = "total_price", nullable = false)
     private Integer totalPrice;
@@ -63,6 +65,9 @@ public class ShopOrderEntity {
     @Column(name = "reward_point")
     private Long rewardPoint;
 
+    @Column(name = "shop_cart_id")
+    private Long shopCartId;
+
     @LastModifiedDate
     @Column(name = "last_updated_date", nullable = false)
     private LocalDateTime lastUpdatedDate;
@@ -71,10 +76,11 @@ public class ShopOrderEntity {
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    public static ShopOrderEntity create(Long memberId, Long paymentId, Boolean purchaseConfirmation, String status,
+    public static ShopOrderEntity create(Long memberId, Long paymentId, Boolean purchaseConfirmation,
+            ShopOrderStatus status,
             Integer totalPrice, Integer totalDiscountPrice, Integer totalAdditionalPrice, String receiverName,
             String receiverPhone, String receiverAddress, String receiverAddressCode, String receiverDetailAddress,
-             Long usedPoint, Long rewardPoint) {
+            Long usedPoint, Long rewardPoint, Long shopCartId) {
         return ShopOrderEntity.builder()
                 .memberId(memberId)
                 .paymentId(paymentId)
@@ -90,6 +96,11 @@ public class ShopOrderEntity {
                 .receiverDetailAddress(receiverDetailAddress)
                 .usedPoint(usedPoint)
                 .rewardPoint(rewardPoint)
+                .shopCartId(shopCartId)
                 .build();
+    }
+
+    public void updateStatus(ShopOrderStatus status) {
+        this.status = status;
     }
 }

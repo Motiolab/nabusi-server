@@ -3,6 +3,7 @@ package com.motiolab.nabusi_server.shop.orderPackage.shopOrder.ui;
 import com.motiolab.nabusi_server.argumentResolver.MemberId;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.ShopOrderMobileService;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderMobileDto;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CancelShopOrderMobileRequestV1;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CreateOrderWithPaymentConfirmMobileRequestV1;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.ValidateOrderMobileRequestV1;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.response.GetShopOrderListByMemberIdMobileResponse;
@@ -94,6 +95,13 @@ public class ShopOrderMobileController {
                                                         .build();
                                 }).toList();
                 return ResponseEntity.ok(getShopOrderListByMemberIdMobileResponseList);
+        }
+
+        @PutMapping("/v1/mobile/shop/order/cancel")
+        public ResponseEntity<Void> cancelOrder(@MemberId Long memberId,
+                        @RequestBody CancelShopOrderMobileRequestV1 cancelShopOrderMobileRequestV1) {
+                shopOrderMobileService.cancelOrder(cancelShopOrderMobileRequestV1);
+                return ResponseEntity.ok().build();
         }
 
         @GetMapping("/v1/mobile/shop/order/{id}")

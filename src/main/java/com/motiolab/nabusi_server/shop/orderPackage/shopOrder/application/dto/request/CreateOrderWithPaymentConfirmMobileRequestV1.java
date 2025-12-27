@@ -1,5 +1,7 @@
 package com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request;
 
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.enums.ShopOrderStatus;
+
 import lombok.*;
 
 import java.util.List;
@@ -16,7 +18,7 @@ public class CreateOrderWithPaymentConfirmMobileRequestV1 {
     private Long memberId;
     private Long shopCartId;
     private Boolean purchaseConfirmation;
-    private String status;
+    private ShopOrderStatus status;
     private Integer totalPrice;
     private Integer totalDiscountPrice;
     private Integer totalAdditionalPrice;
@@ -48,7 +50,3 @@ public class CreateOrderWithPaymentConfirmMobileRequestV1 {
         private Integer totalPrice;
     }
 }
-
-
-
-

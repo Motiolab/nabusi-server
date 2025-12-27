@@ -29,8 +29,8 @@ public class ShopOrderServiceImpl implements ShopOrderService {
                 shopOrderDto.getReceiverAddressCode(),
                 shopOrderDto.getReceiverDetailAddress(),
                 shopOrderDto.getUsedPoint(),
-                shopOrderDto.getRewardPoint()
-        );
+                shopOrderDto.getRewardPoint(),
+                shopOrderDto.getShopCartId());
 
         final ShopOrderEntity storedShopOrderEntity = shopOrderRepository.save(shopOrderEntity);
         return ShopOrderDto.from(storedShopOrderEntity);

@@ -40,8 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/v3/api-docs.*", "/swagger-ui.*", "/swagger-ui.html"); // 테스트 ngrok 사용시 추가
                                                                     // "http://*.ngrok-free.app/login"
     public static final List<String> PERMISSION_WHITELIST = List.of("/v1/mobile/cart/item", "/v1/mobile/cart/item/.*",
-            "/v1/mobile/cart/list", "/v1/admin/member/address/.*", "/v1/admin/member/point", "/v1/mobile/toss-pay/create",
-            "/v1/mobile/reservation/payment/confirm", "/v1/mobile/reservation/validate", "/v1/mobile/reservation/refund");
+            "/v1/mobile/cart/list", "/v1/admin/member/address/.*", "/v1/admin/member/point",
+            "/v1/mobile/toss-pay/create",
+            "/v1/mobile/reservation/payment/confirm", "/v1/mobile/reservation/validate",
+            "/v1/mobile/reservation/refund",
+            "/v1/mobile/shop/order/cancel");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,

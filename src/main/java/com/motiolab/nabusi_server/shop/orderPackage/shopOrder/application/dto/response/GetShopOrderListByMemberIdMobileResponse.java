@@ -1,5 +1,6 @@
 package com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.response;
 
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.enums.ShopOrderStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,12 +17,12 @@ public class GetShopOrderListByMemberIdMobileResponse {
 
     @Builder
     @Getter
-    public static class ShopOrderResponse{
+    public static class ShopOrderResponse {
         private Long id;
         private Long memberId;
         private Long paymentId;
         private Boolean purchaseConfirmation;
-        private String status;
+        private ShopOrderStatus status;
         private Integer totalPrice;
         private Integer totalDiscountPrice;
         private Integer totalAdditionalPrice;
@@ -38,7 +39,7 @@ public class GetShopOrderListByMemberIdMobileResponse {
 
     @Builder
     @Getter
-    public static class ShopOrderItemResponse{
+    public static class ShopOrderItemResponse {
         private Long id;
         private Long shopOrderId;
         private Long shopProductVariantId;

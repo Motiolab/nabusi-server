@@ -28,6 +28,14 @@ import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.PaymentDto;
 import com.motiolab.nabusi_server.fcmTokenMobile.application.FcmTokenMobileService;
 import com.motiolab.nabusi_server.notificationPackage.notificationFcm.application.NotificationFcmAdminService;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.domain.ShopOrderRepository;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CancelShopOrderMobileRequestV1;
+import com.motiolab.nabusi_server.paymentPackage.payment.application.PaymentService;
+import com.motiolab.nabusi_server.paymentPackage.tossPayPackage.tossPay.application.TossPayService;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.domain.ShopOrderEntity;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.enums.ShopOrderStatus;
+import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request.CancelTossPayRequest;
+import com.motiolab.nabusi_server.paymentPackage.tossPayPackage.tossPay.application.dto.TossPayDto;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +50,9 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
         private final PaymentMobileService paymentMobileService;
         private final FcmTokenMobileService fcmTokenMobileService;
         private final NotificationFcmAdminService notificationFcmAdminService;
+        private final ShopOrderRepository shopOrderRepository;
+        private final PaymentService paymentService;
+        private final TossPayService tossPayService;
 
         @Transactional
         @Override
@@ -128,6 +139,9 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
                                                 createOrderWithPaymentConfirmMobileRequestV1.getReceiverAddressCode())
                                 .receiverDetailAddress(
                                                 createOrderWithPaymentConfirmMobileRequestV1.getReceiverDetailAddress())
+                                .usedPoint(createOrderWithPaymentConfirmMobileRequestV1.getUsedPoint())
+                                .rewardPoint(createOrderWithPaymentConfirmMobileRequestV1.getRewardPoint())
+                                .shopCartId(createOrderWithPaymentConfirmMobileRequestV1.getShopCartId())
                                 .build();
 
                 final ShopOrderDto storedShopOrderDto = shopOrderService.save(shopOrderDto);
@@ -232,5 +246,77 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
                                 throw new InsufficientStockException("재고가 부족하거나 주문을 처리할 수 없습니다.");
                         }
                 });
+        }
+
+        @Transactional
+        @Override
+        public void cancelOrder(CancelShopOrderMobileRequestV1 cancelShopOrderMobileRequestV1) {
+                ShopOrderEntity shopOrderEntity = shopOrderRepository
+                                .findById(cancelShopOrderMobileRequestV1.getShopOrderId())
+                                .orElseThrow(() -> new RuntimeException("주문 정보를 찾을 수 없습니다."));
+
+                final PaymentDto paymentDto = paymentService.getById(shopOrderEntity.getPaymentId());
+                final TossPayDto tossPayDto = tossPayService.getById(paymentDto.getTossPayId());
+
+                // 1. Toss Payments 취소
+                paymentMobileService.cancelTossPay(CancelTossPayRequest.builder()
+                                .paymentKey(tossPayDto.getPaymentKey())
+                                .cancelReason(cancelShopOrderMobileRequestV1.getCancelReason())
+                                .build());
+
+                // 2. 재고 복구
+                final List<ShopOrderItemDto> orderItems = shopOrderItemService
+                                .getAllByShopOrderId(shopOrderEntity.getId());
+                orderItems.forEach(item -> {
+                        ShopProductVariantDto variant = shopProductVariantService
+                                        .getById(item.getShopProductVariantId());
+                        shopProductVariantService.update(ShopProductVariantDto.builder()
+                                        .id(variant.getId())
+                                        .shopProductId(variant.getShopProductId())
+                                        .optionName(variant.getOptionName())
+                                        .additionalPrice(variant.getAdditionalPrice())
+                                        .display(variant.getDisplay())
+                                        .selling(variant.getSelling())
+                                        .displaySoldOut(variant.getDisplaySoldOut())
+                                        .quantity(variant.getQuantity() + item.getQuantity())
+                                        .build());
+
+                        // 품절 상태 해제 체크
+                        shopProductService.updateSoldOut(variant.getShopProductId(), "false");
+                });
+
+                // 3. 포인트 복구
+                if (shopOrderEntity.getUsedPoint() != null && shopOrderEntity.getUsedPoint() > 0) {
+                        memberPointService.addPoint(shopOrderEntity.getMemberId(), shopOrderEntity.getUsedPoint());
+                        memberPointHistoryService.create(MemberPointHistoryDto.builder()
+                                        .memberId(shopOrderEntity.getMemberId())
+                                        .amount(shopOrderEntity.getUsedPoint())
+                                        .transactionType(PointTransactionType.CANCEL)
+                                        .description("주문 취소로 인한 포인트 복구")
+                                        .referenceId(paymentDto.getId().toString())
+                                        .build());
+                }
+
+                // 적립된 포인트 회수
+                if (shopOrderEntity.getRewardPoint() != null && shopOrderEntity.getRewardPoint() > 0) {
+                        memberPointService.addPoint(shopOrderEntity.getMemberId(), -shopOrderEntity.getRewardPoint());
+                        memberPointHistoryService.create(MemberPointHistoryDto.builder()
+                                        .memberId(shopOrderEntity.getMemberId())
+                                        .amount(shopOrderEntity.getRewardPoint())
+                                        .transactionType(PointTransactionType.CANCEL)
+                                        .description("주문 취소로 인한 적립 포인트 회수")
+                                        .referenceId(paymentDto.getId().toString())
+                                        .build());
+                }
+
+                // 4. FCM 알림 발송
+                final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(shopOrderEntity.getMemberId());
+                if (fcmToken != null) {
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "주문 취소 완료", "주문이 취소되었습니다.");
+                }
+
+                // 5. 주문 상태 변경
+                shopOrderEntity.updateStatus(ShopOrderStatus.CANCELED);
+                shopOrderRepository.save(shopOrderEntity);
         }
 }

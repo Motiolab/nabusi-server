@@ -2,7 +2,6 @@ package com.motiolab.nabusi_server.paymentPackage.payment.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.WellnessLectureService;
-import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.WellnessLectureDto;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.PaymentDto;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request.CancelTossPayRequest;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request.CreateTossPayRequest;
@@ -20,8 +19,6 @@ import com.motiolab.nabusi_server.paymentPackage.tossPayPackage.tossPayEasyPay.a
 import com.motiolab.nabusi_server.paymentPackage.tossPayPackage.tossPayFailure.application.TossPayFailureService;
 import com.motiolab.nabusi_server.paymentPackage.tossPayPackage.tossPayFailure.application.dto.TossPayFailureDto;
 import com.motiolab.nabusi_server.reservation.application.ReservationService;
-import com.motiolab.nabusi_server.reservation.application.dto.ReservationDto;
-import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
