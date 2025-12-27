@@ -33,7 +33,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -187,8 +189,10 @@ public class PaymentMobileServiceImpl implements PaymentMobileService {
 
         String requestBody;
         try {
-            requestBody = objectMapper.writeValueAsString(java.util.Map.of(
-                    "cancelReason", cancelTossPayRequest.getCancelReason()));
+            Map<String, String> params = new HashMap<>();
+            params.put("cancelReason",
+                    cancelTossPayRequest.getCancelReason() != null ? cancelTossPayRequest.getCancelReason() : "고객 변심");
+            requestBody = objectMapper.writeValueAsString(params);
         } catch (Exception e) {
             throw new RuntimeException("Error creating request body", e);
         }
