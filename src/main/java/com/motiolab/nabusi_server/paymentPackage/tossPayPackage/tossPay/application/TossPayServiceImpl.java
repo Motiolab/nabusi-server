@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TossPayServiceImpl implements TossPayService{
+public class TossPayServiceImpl implements TossPayService {
     private final TossPayRepository tossPayRepository;
 
     @Override
@@ -44,17 +44,16 @@ public class TossPayServiceImpl implements TossPayService{
                 tossPayDto.getVat(),
                 tossPayDto.getTaxFreeAmount(),
                 tossPayDto.getMethod(),
-                tossPayDto.getVersion()
-        );
+                tossPayDto.getVersion());
         TossPayEntity savedTossPayEntity = tossPayRepository.save(tossPayEntity);
         return TossPayDto.from(savedTossPayEntity);
     }
 
     @Override
     public TossPayDto getByPaymentKey(String paymentKey) {
-         return tossPayRepository.findByPaymentKey(paymentKey)
-                 .map(TossPayDto::from)
-                 .orElse(null);
+        return tossPayRepository.findByPaymentKey(paymentKey)
+                .map(TossPayDto::from)
+                .orElse(null);
     }
 
     @Override
@@ -90,10 +89,16 @@ public class TossPayServiceImpl implements TossPayService{
                             tossPayDto.getVat(),
                             tossPayDto.getTaxFreeAmount(),
                             tossPayDto.getMethod(),
-                            tossPayDto.getVersion()
-                    );
+                            tossPayDto.getVersion());
                     return tossPayRepository.save(tossPayEntity);
                 })
                 .orElseThrow(() -> new NotFoundException(WellnessLectureEntity.class, tossPayDto.getId()));
+    }
+
+    @Override
+    public TossPayDto getById(Long id) {
+        return tossPayRepository.findById(id)
+                .map(TossPayDto::from)
+                .orElseThrow(() -> new NotFoundException(TossPayEntity.class, id));
     }
 }

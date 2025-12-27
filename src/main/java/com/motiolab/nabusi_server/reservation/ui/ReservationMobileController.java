@@ -2,10 +2,7 @@ package com.motiolab.nabusi_server.reservation.ui;
 
 import com.motiolab.nabusi_server.argumentResolver.MemberId;
 import com.motiolab.nabusi_server.reservation.application.ReservationMobileService;
-import com.motiolab.nabusi_server.reservation.application.dto.request.CancelReservationMobileRequestV1;
-import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationMobileRequestV1;
-import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationWithPaymentConfirmMobileRequestV1;
-import com.motiolab.nabusi_server.reservation.application.dto.request.ValidationReservationBeforePaymentMobileRequestV1;
+import com.motiolab.nabusi_server.reservation.application.dto.request.*;
 import com.motiolab.nabusi_server.reservation.application.dto.response.*;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderMobileDto;
@@ -45,7 +42,6 @@ public class ReservationMobileController {
         validationReservationBeforePaymentMobileRequestV1.setMemberId(memberId);
         reservationMobileService.validateReservationBeforePayment(validationReservationBeforePaymentMobileRequestV1);
         return ResponseEntity.ok().build();
-
     }
 
     @PutMapping("/v1/mobile/reservation/cancel")
@@ -54,6 +50,12 @@ public class ReservationMobileController {
         cancelReservationMobileRequestV1.setStatus(ReservationStatus.MEMBER_CANCELED_RESERVATION);
         reservationMobileService.cancelReservation(cancelReservationMobileRequestV1);
         return ResponseEntity.ok(CancelReservationAdminResponseV1.builder().success(true).build());
+    }
+
+    @PostMapping("/v1/mobile/reservation/refund")
+    public ResponseEntity<Void> refundReservation(@MemberId Long memberId,  @RequestBody RefundReservationMobileRequestV1 refundReservationMobileRequestV1) {
+        reservationMobileService.refundReservation(memberId, refundReservationMobileRequestV1);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/v1/mobile/reservation/list")

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentServiceImpl implements PaymentService{
+public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
 
     @Override
@@ -18,23 +18,21 @@ public class PaymentServiceImpl implements PaymentService{
                 paymentDto.getMemberId(),
                 paymentDto.getTossPayId(),
                 paymentDto.getOnSitePayId(),
-                paymentDto.getStatus()
-        );
+                paymentDto.getStatus());
         PaymentEntity savedPaymentEntity = paymentRepository.save(paymentEntity);
         return PaymentDto.from(savedPaymentEntity);
     }
 
     @Override
     public PaymentDto update(PaymentDto paymentDto) {
-        final PaymentEntity paymentEntity  = paymentRepository.findById(paymentDto.getId())
+        final PaymentEntity paymentEntity = paymentRepository.findById(paymentDto.getId())
                 .orElseThrow(() -> new NotFoundException(PaymentEntity.class, paymentDto.getId()));
 
         paymentEntity.update(
                 paymentDto.getMemberId(),
                 paymentDto.getTossPayId(),
                 paymentDto.getOnSitePayId(),
-                paymentDto.getStatus()
-        );
+                paymentDto.getStatus());
 
         PaymentEntity savedPaymentEntity = paymentRepository.save(paymentEntity);
         return PaymentDto.from(savedPaymentEntity);
@@ -45,6 +43,13 @@ public class PaymentServiceImpl implements PaymentService{
         final PaymentEntity paymentEntity = paymentRepository.findByTossPayId(tossPayId)
                 .orElseThrow(() -> new NotFoundException(PaymentEntity.class, tossPayId));
 
+        return PaymentDto.from(paymentEntity);
+    }
+
+    @Override
+    public PaymentDto getById(Long id) {
+        final PaymentEntity paymentEntity = paymentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(PaymentEntity.class, id));
         return PaymentDto.from(paymentEntity);
     }
 }

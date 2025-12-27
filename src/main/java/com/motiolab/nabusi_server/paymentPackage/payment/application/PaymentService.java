@@ -4,6 +4,10 @@ import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.Payment
 
 public interface PaymentService {
     PaymentDto create(PaymentDto paymentDto);
+
     PaymentDto update(PaymentDto paymentDto);
+
     PaymentDto getByTossPayId(Long tossPayId);
+
+    PaymentDto getById(Long id);
 }

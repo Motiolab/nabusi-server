@@ -233,10 +233,6 @@ public class PaymentMobileServiceImpl implements PaymentMobileService {
                             .build())
                     .toList();
             tossPayCancelService.createAll(tossPayCancelDtoList);
-
-            ReservationDto reservationDto = reservationService.getById(cancelTossPayRequest.getReservationId());
-            reservationDto.setStatus(ReservationStatus.MEMBER_CANCELED_RESERVATION);
-            reservationService.update(reservationDto);
         } else {
             System.out.println("Payment confirmation failed. Status: " + response.getStatusCode());
             ResponseEntity<TossPayFailureRequest> tossPayFailureRes = restTemplate.exchange(url, HttpMethod.POST,
