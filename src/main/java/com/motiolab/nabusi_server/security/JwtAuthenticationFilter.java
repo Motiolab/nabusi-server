@@ -44,7 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/v1/mobile/toss-pay/create",
             "/v1/mobile/reservation/payment/confirm", "/v1/mobile/reservation/validate",
             "/v1/mobile/reservation/refund",
-            "/v1/mobile/shop/order/cancel");
+            "/v1/mobile/shop/order/cancel",
+            "/v1/mobile/wellness-lecture-review/comment/create");
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,
