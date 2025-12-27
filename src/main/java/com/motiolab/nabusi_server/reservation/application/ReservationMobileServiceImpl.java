@@ -354,6 +354,8 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                                                                         targetWellnessLectureReviewDtoList)
                                                         .build();
                                 })
+                                .filter(it -> it.getWellnessLectureDto().getStartDateTime()
+                                                .isAfter(ZonedDateTime.now().minusDays(3)))
                                 .toList();
         }
 
