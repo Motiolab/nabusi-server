@@ -6,5 +6,8 @@ import java.util.List;
 
 public interface WellnessLectureReviewCommentService {
     WellnessLectureReviewCommentDto create(Long wellnessLectureReviewId, Long memberId, String content);
+
     List<WellnessLectureReviewCommentDto> getAllByWellnessLectureReviewId(Long wellnessLectureReviewId);
+
+    void delete(Long commentId, Long memberId);
 }

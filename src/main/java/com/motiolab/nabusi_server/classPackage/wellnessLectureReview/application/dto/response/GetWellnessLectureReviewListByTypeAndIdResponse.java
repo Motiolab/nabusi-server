@@ -35,5 +35,6 @@ public class GetWellnessLectureReviewListByTypeAndIdResponse {
         private Long id;
         private String content;
         private Long memberId;
+        private Boolean isDeleteAvailable;
     }
 }

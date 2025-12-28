@@ -11,6 +11,7 @@ import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.request.UpdateWellnessLectureReviewMobileRequest;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.WellnessLectureReviewCommentService;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.dto.request.CreateWellnessLectureReviewCommentMobileRequest;
+import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.dto.request.DeleteWellnessLectureReviewCommentMobileRequest;
 import com.motiolab.nabusi_server.exception.customException.ExistsAlreadyException;
 import com.motiolab.nabusi_server.exception.customException.NoAuthorityException;
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
@@ -33,215 +34,248 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Service
 public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureReviewMobileService {
-    private final WellnessLectureReviewService wellnessLectureReviewService;
-    private final WellnessLectureService wellnessLectureService;
-    private final WellnessClassService wellnessClassService;
-    private final ReservationService reservationService;
-    private final MemberService memberService;
-    private final TeacherService teacherService;
-    private final WellnessLectureReviewCommentService wellnessLectureReviewCommentService;
-    private final FcmTokenMobileService fcmTokenMobileService;
-    private final NotificationFcmAdminService notificationFcmAdminService;
+        private final WellnessLectureReviewService wellnessLectureReviewService;
+        private final WellnessLectureService wellnessLectureService;
+        private final WellnessClassService wellnessClassService;
+        private final ReservationService reservationService;
+        private final MemberService memberService;
+        private final TeacherService teacherService;
+        private final WellnessLectureReviewCommentService wellnessLectureReviewCommentService;
+        private final FcmTokenMobileService fcmTokenMobileService;
+        private final NotificationFcmAdminService notificationFcmAdminService;
 
-    @Override
-    public void createWellnessLectureReview(Long memberId,
-            CreateWellnessLectureReviewMobileRequest createWellnessLectureReviewMobileRequest) {
-        final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
-                .getByMemberIdAndWellnessLectureId(memberId,
-                        createWellnessLectureReviewMobileRequest.getWellnessLectureId());
-        if (wellnessLectureReviewDto != null) {
-            throw new ExistsAlreadyException(CenterRoomDto.class, wellnessLectureReviewDto.getId());
+        @Override
+        public void createWellnessLectureReview(Long memberId,
+                        CreateWellnessLectureReviewMobileRequest createWellnessLectureReviewMobileRequest) {
+                final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
+                                .getByMemberIdAndWellnessLectureId(memberId,
+                                                createWellnessLectureReviewMobileRequest.getWellnessLectureId());
+                if (wellnessLectureReviewDto != null) {
+                        throw new ExistsAlreadyException(CenterRoomDto.class, wellnessLectureReviewDto.getId());
+                }
+
+                final WellnessLectureDto wellnessLectureDto = wellnessLectureService
+                                .getById(createWellnessLectureReviewMobileRequest.getWellnessLectureId());
+                if (wellnessLectureDto == null) {
+                        throw new NotFoundException(WellnessLectureDto.class,
+                                        createWellnessLectureReviewMobileRequest.getWellnessLectureId());
+                }
+
+                final WellnessClassDto wellnessClassDto = wellnessClassService
+                                .getById(wellnessLectureDto.getWellnessClassId());
+                if (wellnessClassDto == null) {
+                        throw new NotFoundException(WellnessClassDto.class, wellnessLectureDto.getWellnessClassId());
+                }
+
+                final ReservationDto reservationDto = reservationService.getByMemberIdAndWellnessLectureId(memberId,
+                                createWellnessLectureReviewMobileRequest.getWellnessLectureId());
+                if (reservationDto == null) {
+                        throw new NotMemberException(ReservationDto.class,
+                                        createWellnessLectureReviewMobileRequest.getWellnessLectureId());
+                }
+
+                final WellnessLectureReviewDto newWellnessLectureReviewDto = WellnessLectureReviewDto.builder()
+                                .rating(createWellnessLectureReviewMobileRequest.getRating())
+                                .wellnessLectureId(wellnessLectureDto.getId())
+                                .wellnessClassId(wellnessClassDto.getId())
+                                .memberId(memberId)
+                                .teacherId(wellnessLectureDto.getTeacherId())
+                                .centerId(wellnessClassDto.getCenterId())
+                                .content(createWellnessLectureReviewMobileRequest.getContent())
+                                .isPrivate(createWellnessLectureReviewMobileRequest.getIsPrivate())
+                                .isDelete(false)
+                                .build();
+
+                wellnessLectureReviewService.create(newWellnessLectureReviewDto);
+
+                final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
+                if (fcmToken != null) {
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "리뷰 등록 완료",
+                                        "리뷰 등록이 성공적으로 완료되었습니다.");
+                }
         }
 
-        final WellnessLectureDto wellnessLectureDto = wellnessLectureService
-                .getById(createWellnessLectureReviewMobileRequest.getWellnessLectureId());
-        if (wellnessLectureDto == null) {
-            throw new NotFoundException(WellnessLectureDto.class,
-                    createWellnessLectureReviewMobileRequest.getWellnessLectureId());
+        @Override
+        public WellnessLectureReviewMobileDto getWellnessLectureReviewById(Long wellnessLectureReviewId) {
+                final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
+                                .getById(wellnessLectureReviewId);
+                if (wellnessLectureReviewDto == null) {
+                        throw new NotFoundException(WellnessLectureReviewDto.class, wellnessLectureReviewId);
+                }
+                return WellnessLectureReviewMobileDto.builder()
+                                .wellnessLectureReviewDto(wellnessLectureReviewDto)
+                                .build();
         }
 
-        final WellnessClassDto wellnessClassDto = wellnessClassService.getById(wellnessLectureDto.getWellnessClassId());
-        if (wellnessClassDto == null) {
-            throw new NotFoundException(WellnessClassDto.class, wellnessLectureDto.getWellnessClassId());
+        @Override
+        public void updateWellnessLectureReview(Long memberId,
+                        UpdateWellnessLectureReviewMobileRequest updateWellnessLectureReviewMobileRequest) {
+                final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
+                                .getById(updateWellnessLectureReviewMobileRequest.getWellnessLectureReviewId());
+
+                if (!Objects.equals(wellnessLectureReviewDto.getMemberId(), memberId)) {
+                        throw new NotMemberException(WellnessLectureReviewDto.class,
+                                        updateWellnessLectureReviewMobileRequest.getWellnessLectureReviewId());
+                }
+
+                wellnessLectureReviewDto.setContent(updateWellnessLectureReviewMobileRequest.getContent());
+                wellnessLectureReviewDto.setRating(updateWellnessLectureReviewMobileRequest.getRating());
+                wellnessLectureReviewDto.setIsPrivate(updateWellnessLectureReviewMobileRequest.getIsPrivate());
+
+                wellnessLectureReviewService.update(wellnessLectureReviewDto);
         }
 
-        final ReservationDto reservationDto = reservationService.getByMemberIdAndWellnessLectureId(memberId,
-                createWellnessLectureReviewMobileRequest.getWellnessLectureId());
-        if (reservationDto == null) {
-            throw new NotMemberException(ReservationDto.class,
-                    createWellnessLectureReviewMobileRequest.getWellnessLectureId());
+        @Override
+        public List<WellnessLectureReviewMobileDto> getWellnessLectureReviewListByTypeAndId(Long memberId, String type,
+                        Long id) {
+                if (type.equals("wellness_class")) {
+                        final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
+                                        .getAllByWellnessClassId(id);
+                        final List<WellnessLectureReviewDto> wellnessLectureReviewIsDelteFalseDtoList = wellnessLectureReviewDtoList
+                                        .stream()
+                                        .filter(wellnessLectureReviewDto -> !wellnessLectureReviewDto.getIsDelete())
+                                        .toList();
+                        return getWellnessLectureReviewMobileDtos(memberId, wellnessLectureReviewIsDelteFalseDtoList);
+                } else if (type.equals("wellness_lecture")) {
+                        final WellnessLectureDto wellnessLectureDto = wellnessLectureService.getById(id);
+                        final Long wellnessClassId = wellnessLectureDto.getWellnessClassId();
+                        final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
+                                        .getAllByWellnessClassId(wellnessClassId);
+                        final List<WellnessLectureReviewDto> wellnessLectureReviewIsDelteFalseDtoList = wellnessLectureReviewDtoList
+                                        .stream()
+                                        .filter(wellnessLectureReviewDto -> !wellnessLectureReviewDto.getIsDelete())
+                                        .toList();
+                        return getWellnessLectureReviewMobileDtos(memberId, wellnessLectureReviewIsDelteFalseDtoList);
+                } else if (type.equals("center")) {
+                        final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
+                                        .getAllByCenterId(id);
+                        final List<WellnessLectureReviewDto> wellnessLectureReviewIsDelteFalseDtoList = wellnessLectureReviewDtoList
+                                        .stream()
+                                        .filter(wellnessLectureReviewDto -> !wellnessLectureReviewDto.getIsDelete())
+                                        .toList();
+                        return getWellnessLectureReviewMobileDtos(memberId, wellnessLectureReviewIsDelteFalseDtoList);
+                } else if (type.equals("teacher")) {
+                        final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
+                                        .getAllByTeacherId(id);
+                        final List<WellnessLectureReviewDto> wellnessLectureReviewIsDelteFalseDtoList = wellnessLectureReviewDtoList
+                                        .stream()
+                                        .filter(wellnessLectureReviewDto -> !wellnessLectureReviewDto.getIsDelete())
+                                        .toList();
+                        return getWellnessLectureReviewMobileDtos(memberId, wellnessLectureReviewIsDelteFalseDtoList);
+                }
+
+                return List.of();
         }
 
-        final WellnessLectureReviewDto newWellnessLectureReviewDto = WellnessLectureReviewDto.builder()
-                .rating(createWellnessLectureReviewMobileRequest.getRating())
-                .wellnessLectureId(wellnessLectureDto.getId())
-                .wellnessClassId(wellnessClassDto.getId())
-                .memberId(memberId)
-                .teacherId(wellnessLectureDto.getTeacherId())
-                .centerId(wellnessClassDto.getCenterId())
-                .content(createWellnessLectureReviewMobileRequest.getContent())
-                .isPrivate(createWellnessLectureReviewMobileRequest.getIsPrivate())
-                .isDelete(false)
-                .build();
+        private List<WellnessLectureReviewMobileDto> getWellnessLectureReviewMobileDtos(Long memberId,
+                        List<WellnessLectureReviewDto> wellnessLectureReviewDtoList) {
+                final List<Long> memberIdList = wellnessLectureReviewDtoList.stream()
+                                .map(WellnessLectureReviewDto::getMemberId)
+                                .distinct().toList();
+                final List<MemberDto> memberDtoList = memberService.getAllByIdList(memberIdList);
+                final List<WellnessLectureReviewDto> memberWellnessLectureReviewDtoList = wellnessLectureReviewService
+                                .getAllByMemberIdList(memberIdList);
+                final List<ReservationStatus> reservationStatusList = List.of(ReservationStatus.CHECK_IN);
+                final List<ReservationDto> memberReservationDtoList = reservationService
+                                .getAllByMemberIdListAndStatusList(memberIdList, reservationStatusList);
 
-        wellnessLectureReviewService.create(newWellnessLectureReviewDto);
+                final List<Long> teacherIdList = wellnessLectureReviewDtoList.stream()
+                                .map(WellnessLectureReviewDto::getTeacherId).distinct().toList();
 
-        final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
-        if (fcmToken != null) {
-            notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "리뷰 등록 완료",
-                    "리뷰 등록이 성공적으로 완료되었습니다.");
-        }
-    }
+                final List<TeacherDto> teacherDtoList = teacherService.getAllByIdList(teacherIdList);
 
-    @Override
-    public WellnessLectureReviewMobileDto getWellnessLectureReviewById(Long wellnessLectureReviewId) {
-        final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
-                .getById(wellnessLectureReviewId);
-        if (wellnessLectureReviewDto == null) {
-            throw new NotFoundException(WellnessLectureReviewDto.class, wellnessLectureReviewId);
-        }
-        return WellnessLectureReviewMobileDto.builder()
-                .wellnessLectureReviewDto(wellnessLectureReviewDto)
-                .build();
-    }
+                return wellnessLectureReviewDtoList
+                                .stream()
+                                .map(wellnessLectureReviewDto -> {
+                                        final MemberDto targetMemberDto = memberDtoList
+                                                        .stream()
+                                                        .filter(memberDto -> Objects.equals(memberDto.getId(),
+                                                                        wellnessLectureReviewDto.getMemberId()))
+                                                        .findFirst()
+                                                        .orElseThrow(() -> new NotFoundException(MemberDto.class,
+                                                                        wellnessLectureReviewDto.getMemberId()));
 
-    @Override
-    public void updateWellnessLectureReview(Long memberId,
-            UpdateWellnessLectureReviewMobileRequest updateWellnessLectureReviewMobileRequest) {
-        final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
-                .getById(updateWellnessLectureReviewMobileRequest.getWellnessLectureReviewId());
+                                        final List<WellnessLectureReviewDto> targetWellnessLectureReviewDtoList = memberWellnessLectureReviewDtoList
+                                                        .stream()
+                                                        .filter(memberWellnessLectureReviewDto -> Objects.equals(
+                                                                        memberWellnessLectureReviewDto.getMemberId(),
+                                                                        wellnessLectureReviewDto.getMemberId()))
+                                                        .toList();
 
-        if (!Objects.equals(wellnessLectureReviewDto.getMemberId(), memberId)) {
-            throw new NotMemberException(WellnessLectureReviewDto.class,
-                    updateWellnessLectureReviewMobileRequest.getWellnessLectureReviewId());
-        }
+                                        final List<ReservationDto> targetReservationDtoList = memberReservationDtoList
+                                                        .stream()
+                                                        .filter(memberReservationDto -> Objects.equals(
+                                                                        memberReservationDto.getMemberId(),
+                                                                        wellnessLectureReviewDto.getMemberId()))
+                                                        .toList();
 
-        wellnessLectureReviewDto.setContent(updateWellnessLectureReviewMobileRequest.getContent());
-        wellnessLectureReviewDto.setRating(updateWellnessLectureReviewMobileRequest.getRating());
-        wellnessLectureReviewDto.setIsPrivate(updateWellnessLectureReviewMobileRequest.getIsPrivate());
+                                        final TeacherDto targetTeacherDto = teacherDtoList
+                                                        .stream()
+                                                        .filter(teacherDto -> Objects.equals(teacherDto.getId(),
+                                                                        wellnessLectureReviewDto.getTeacherId()))
+                                                        .findFirst()
+                                                        .orElse(null);
 
-        wellnessLectureReviewService.update(wellnessLectureReviewDto);
-    }
+                                        final Boolean isCreateCommentAvailable = Objects
+                                                        .equals(Objects.requireNonNull(targetTeacherDto).getMemberId(),
+                                                                        memberId)
+                                                        || Objects.equals(targetMemberDto.getId(), memberId);
 
-    @Override
-    public List<WellnessLectureReviewMobileDto> getWellnessLectureReviewListByTypeAndId(Long memberId, String type,
-            Long id) {
-        if (type.equals("wellness_class")) {
-            final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
-                    .getAllByWellnessClassId(id);
-            final List<WellnessLectureReviewDto> wellnessLectureReviewIsDelteFalseDtoList = wellnessLectureReviewDtoList
-                    .stream().filter(wellnessLectureReviewDto -> !wellnessLectureReviewDto.getIsDelete()).toList();
-            return getWellnessLectureReviewMobileDtos(memberId, wellnessLectureReviewIsDelteFalseDtoList);
-        } else if (type.equals("wellness_lecture")) {
-            final WellnessLectureDto wellnessLectureDto = wellnessLectureService.getById(id);
-            final Long wellnessClassId = wellnessLectureDto.getWellnessClassId();
-            final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
-                    .getAllByWellnessClassId(wellnessClassId);
-            final List<WellnessLectureReviewDto> wellnessLectureReviewIsDelteFalseDtoList = wellnessLectureReviewDtoList
-                    .stream().filter(wellnessLectureReviewDto -> !wellnessLectureReviewDto.getIsDelete()).toList();
-            return getWellnessLectureReviewMobileDtos(memberId, wellnessLectureReviewIsDelteFalseDtoList);
-        } else if (type.equals("center")) {
-            final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
-                    .getAllByCenterId(id);
-            final List<WellnessLectureReviewDto> wellnessLectureReviewIsDelteFalseDtoList = wellnessLectureReviewDtoList
-                    .stream().filter(wellnessLectureReviewDto -> !wellnessLectureReviewDto.getIsDelete()).toList();
-            return getWellnessLectureReviewMobileDtos(memberId, wellnessLectureReviewIsDelteFalseDtoList);
-        } else if (type.equals("teacher")) {
-            final List<WellnessLectureReviewDto> wellnessLectureReviewDtoList = wellnessLectureReviewService
-                    .getAllByTeacherId(id);
-            final List<WellnessLectureReviewDto> wellnessLectureReviewIsDelteFalseDtoList = wellnessLectureReviewDtoList
-                    .stream().filter(wellnessLectureReviewDto -> !wellnessLectureReviewDto.getIsDelete()).toList();
-            return getWellnessLectureReviewMobileDtos(memberId, wellnessLectureReviewIsDelteFalseDtoList);
+                                        return WellnessLectureReviewMobileDto.builder()
+                                                        .wellnessLectureReviewDto(wellnessLectureReviewDto)
+                                                        .isCreateCommentAvailable(isCreateCommentAvailable)
+                                                        .wellnessLectureReviewCommentDtoList(
+                                                                        wellnessLectureReviewCommentService
+                                                                                        .getAllByWellnessLectureReviewId(
+                                                                                                        wellnessLectureReviewDto
+                                                                                                                        .getId()))
+                                                        .memberDtoExtension(
+                                                                        WellnessLectureReviewMobileDto.MemberDtoExtension
+                                                                                        .builder()
+                                                                                        .memberDto(targetMemberDto)
+                                                                                        .wellnessLectureReviewDtoList(
+                                                                                                        targetWellnessLectureReviewDtoList)
+                                                                                        .reservationDtoList(
+                                                                                                        targetReservationDtoList)
+                                                                                        .build())
+                                                        .build();
+                                }).toList();
         }
 
-        return List.of();
-    }
+        @Override
+        public void createComment(Long memberId,
+                        CreateWellnessLectureReviewCommentMobileRequest createWellnessLectureReviewCommentMobileRequest) {
+                final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
+                                .getById(createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId());
+                final TeacherDto teacherDto = teacherService.getById(wellnessLectureReviewDto.getTeacherId());
 
-    private List<WellnessLectureReviewMobileDto> getWellnessLectureReviewMobileDtos(Long memberId,
-            List<WellnessLectureReviewDto> wellnessLectureReviewDtoList) {
-        final List<Long> memberIdList = wellnessLectureReviewDtoList.stream().map(WellnessLectureReviewDto::getMemberId)
-                .distinct().toList();
-        final List<MemberDto> memberDtoList = memberService.getAllByIdList(memberIdList);
-        final List<WellnessLectureReviewDto> memberWellnessLectureReviewDtoList = wellnessLectureReviewService
-                .getAllByMemberIdList(memberIdList);
-        final List<ReservationStatus> reservationStatusList = List.of(ReservationStatus.CHECK_IN);
-        final List<ReservationDto> memberReservationDtoList = reservationService
-                .getAllByMemberIdListAndStatusList(memberIdList, reservationStatusList);
+                final boolean isCreateCommentAvailable = Objects.equals(teacherDto.getMemberId(), memberId)
+                                || Objects.equals(wellnessLectureReviewDto.getMemberId(), memberId);
 
-        final List<Long> teacherIdList = wellnessLectureReviewDtoList.stream()
-                .map(WellnessLectureReviewDto::getTeacherId).distinct().toList();
+                if (!isCreateCommentAvailable) {
+                        throw new NoAuthorityException(WellnessLectureReviewDto.class,
+                                        createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId());
+                }
 
-        final List<TeacherDto> teacherDtoList = teacherService.getAllByIdList(teacherIdList);
+                wellnessLectureReviewCommentService.create(
+                                createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId(), memberId,
+                                createWellnessLectureReviewCommentMobileRequest.getContent());
 
-        return wellnessLectureReviewDtoList
-                .stream()
-                .map(wellnessLectureReviewDto -> {
-                    final MemberDto targetMemberDto = memberDtoList
-                            .stream()
-                            .filter(memberDto -> Objects.equals(memberDto.getId(),
-                                    wellnessLectureReviewDto.getMemberId()))
-                            .findFirst()
-                            .orElseThrow(() -> new NotFoundException(MemberDto.class,
-                                    wellnessLectureReviewDto.getMemberId()));
-
-                    final List<WellnessLectureReviewDto> targetWellnessLectureReviewDtoList = memberWellnessLectureReviewDtoList
-                            .stream()
-                            .filter(memberWellnessLectureReviewDto -> Objects.equals(
-                                    memberWellnessLectureReviewDto.getMemberId(),
-                                    wellnessLectureReviewDto.getMemberId()))
-                            .toList();
-
-                    final List<ReservationDto> targetReservationDtoList = memberReservationDtoList
-                            .stream()
-                            .filter(memberReservationDto -> Objects.equals(memberReservationDto.getMemberId(),
-                                    wellnessLectureReviewDto.getMemberId()))
-                            .toList();
-
-                    final TeacherDto targetTeacherDto = teacherDtoList
-                            .stream()
-                            .filter(teacherDto -> Objects.equals(teacherDto.getId(),
-                                    wellnessLectureReviewDto.getTeacherId()))
-                            .findFirst()
-                            .orElse(null);
-
-                    final Boolean isCreateCommentAvailable = Objects
-                            .equals(Objects.requireNonNull(targetTeacherDto).getMemberId(), memberId)
-                            || Objects.equals(targetMemberDto.getId(), memberId);
-
-                    return WellnessLectureReviewMobileDto.builder()
-                            .wellnessLectureReviewDto(wellnessLectureReviewDto)
-                            .isCreateCommentAvailable(isCreateCommentAvailable)
-                            .wellnessLectureReviewCommentDtoList(wellnessLectureReviewCommentService.getAllByWellnessLectureReviewId(wellnessLectureReviewDto.getId()))
-                            .memberDtoExtension(
-                                    WellnessLectureReviewMobileDto.MemberDtoExtension.builder()
-                                            .memberDto(targetMemberDto)
-                                            .wellnessLectureReviewDtoList(targetWellnessLectureReviewDtoList)
-                                            .reservationDtoList(targetReservationDtoList)
-                                            .build())
-                            .build();
-                }).toList();
-    }
-
-    @Override
-    public void createComment(Long memberId,
-            CreateWellnessLectureReviewCommentMobileRequest createWellnessLectureReviewCommentMobileRequest) {
-        final WellnessLectureReviewDto wellnessLectureReviewDto = wellnessLectureReviewService
-                .getById(createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId());
-        final TeacherDto teacherDto = teacherService.getById(wellnessLectureReviewDto.getTeacherId());
-
-        final boolean isCreateCommentAvailable = Objects.equals(teacherDto.getMemberId(), memberId)
-                || Objects.equals(wellnessLectureReviewDto.getMemberId(), memberId);
-
-        if (!isCreateCommentAvailable) {
-            throw new NoAuthorityException(WellnessLectureReviewDto.class, createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId());
+                final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
+                if (fcmToken != null) {
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "답변 등록 완료",
+                                        "답변 등록이 성공적으로 완료되었습니다.");
+                }
         }
 
-        wellnessLectureReviewCommentService.create(createWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewId(), memberId, createWellnessLectureReviewCommentMobileRequest.getContent());
+        @Override
+        public void deleteComment(Long memberId, DeleteWellnessLectureReviewCommentMobileRequest deleteWellnessLectureReviewCommentMobileRequest) {
+            wellnessLectureReviewCommentService.delete(deleteWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewCommentId(), memberId);
 
-        final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
-        if (fcmToken != null) {
-            notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "답변 등록 완료",
-                    "답변 등록이 성공적으로 완료되었습니다.");
+            final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
+            if (fcmToken != null) {
+                notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "답변 삭제 완료",
+                        "답변 삭제가 성공적으로 완료되었습니다.");
+            }
         }
-    }
 }
