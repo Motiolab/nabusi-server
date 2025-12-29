@@ -17,7 +17,9 @@ public interface WellnessLectureService {
     List<WellnessLectureDto> getAllByTeacherIdList(List<Long> teacherIdList);
     List<WellnessLectureDto> getAllByIdList(List<Long> idList);
     List<WellnessLectureDto> getAllByCenterIdAndStartDateTimeBetweenAndIsDeleteFalse(Long centerId, ZonedDateTime startDateTime, ZonedDateTime endDateTime);
+    List<WellnessLectureDto> getAllByTeacherIdListAndStartDateTimeBetweenAndIsDeleteFalse(List<Long> teacherIdList, ZonedDateTime startDateTime, ZonedDateTime endDateTime);
     List<WellnessLectureDto> getAllByCenterIdAndTeacherIdAndStartDateTimeBetweenAndIsDeleteFalse(Long centerId, Long teacherId, ZonedDateTime startDateTime, ZonedDateTime endDateTime);
     List<WellnessLectureDto> getAvailableBookingListByWellnessClassId(Long wellnessClassId);
     List<WellnessLectureDto> getAllByCenterIdAndIsDeleteFalse(Long centerId);
+
 }

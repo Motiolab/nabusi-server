@@ -27,4 +27,5 @@ public interface WellnessLectureRepository extends JpaRepository<WellnessLecture
     );
     List<WellnessLectureEntity> findAllByCenterIdAndIsDeleteFalseOrderByStartDateTimeAsc(Long centerId);
     List<WellnessLectureEntity> findAllByCenterIdAndTeacherIdAndStartDateTimeBetweenAndIsDeleteFalseOrderByStartDateTimeAsc(Long centerId, Long teacherId, ZonedDateTime startDateTime, ZonedDateTime endDateTime);
+    List<WellnessLectureEntity> findAllByTeacherIdInAndStartDateTimeBetweenAndIsDeleteFalseOrderByStartDateTimeAsc(List<Long> teacherIdList, ZonedDateTime startDateTime, ZonedDateTime endDateTime);
 }

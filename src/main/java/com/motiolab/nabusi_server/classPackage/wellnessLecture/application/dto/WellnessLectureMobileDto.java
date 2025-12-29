@@ -4,6 +4,7 @@ import com.motiolab.nabusi_server.centerPackage.center.application.dto.CenterCon
 import com.motiolab.nabusi_server.centerPackage.center.application.dto.CenterDto;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.WellnessLectureReviewDto;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureType.application.dto.WellnessLectureTypeDto;
+import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
 import com.motiolab.nabusi_server.reservation.application.dto.ReservationDto;
 import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
 import com.motiolab.nabusi_server.ticketPackage.wellnessTicketIssuance.application.dto.WellnessTicketIssuanceDto;
@@ -31,5 +32,6 @@ public class WellnessLectureMobileDto {
     public static class ReservationExtension {
         ReservationDto reservationDto;
         WellnessTicketIssuanceDto wellnessTicketIssuanceDto;
+        MemberDto memberDto;
     }
 }

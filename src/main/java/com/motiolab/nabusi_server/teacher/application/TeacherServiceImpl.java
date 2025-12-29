@@ -106,4 +106,10 @@ public class TeacherServiceImpl implements TeacherService {
                 })
                 .orElseThrow(() -> new NotFoundException(TeacherEntity.class, id));
     }
+
+    @Override
+    public List<TeacherDto> getAllByMemberId(Long memberId) {
+        final List<TeacherEntity> teacherEntityList = teacherRepository.findAllByMemberId(memberId);
+        return teacherEntityList.stream().map(TeacherDto::from).toList();
+    }
 }

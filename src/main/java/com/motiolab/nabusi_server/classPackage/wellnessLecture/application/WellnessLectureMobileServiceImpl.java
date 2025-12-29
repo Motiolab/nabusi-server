@@ -102,8 +102,82 @@ public class WellnessLectureMobileServiceImpl implements WellnessLectureMobileSe
     }
 
     @Override
+    public List<WellnessLectureMobileDto> getAllWellnessLectureListByMemberIdAndDate(Long memberId, ZonedDateTime startDateTime, ZonedDateTime endDateTime) {
+        final List<TeacherDto> teacherDtoList = teacherService.getAllByMemberId(memberId);
+        final List<Long> teacherIdList = teacherDtoList.stream().map(TeacherDto::getId).toList();
+        final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService.getAllByTeacherIdListAndStartDateTimeBetweenAndIsDeleteFalse(teacherIdList, startDateTime, endDateTime);
+        final List<Long> wellnessLectureTypeIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getWellnessLectureTypeId).toList();
+        final List<WellnessLectureTypeDto> wellnessLectureTypeDtoList = wellnessLectureTypeService.getAllByIdList(wellnessLectureTypeIdList);
+
+        final List<Long> wellnessLectureIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getId).toList();
+        final List<ReservationDto> reservationDtoList = reservationService.getAllByWellnessLectureIdList(wellnessLectureIdList);
+        final List<Long> memberIdList = reservationDtoList.stream().map(ReservationDto::getMemberId).toList();
+        final List<MemberDto> memberDtoList = memberService.getAllByIdList(memberIdList);
+
+        return wellnessLectureDtoList.stream().map(wellnessLectureDto -> {
+            final TeacherDto targetTeacherDto = teacherDtoList.stream()
+                    .filter(teacherDto -> teacherDto.getId().equals(wellnessLectureDto.getTeacherId()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Error: Teacher is not found. id: " + wellnessLectureDto.getTeacherId()));
+
+            final WellnessLectureTypeDto targetWellnessLectureTypeDto = wellnessLectureTypeDtoList.stream()
+                    .filter(wellnessLectureTypeDto -> wellnessLectureTypeDto.id().equals(wellnessLectureDto.getWellnessLectureTypeId()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Error: WellnessLectureType is not found. id: " + wellnessLectureDto.getWellnessLectureTypeId()));
+
+            return WellnessLectureMobileDto.builder()
+                    .wellnessLectureDto(wellnessLectureDto)
+                    .teacherDto(targetTeacherDto)
+                    .wellnessLectureTypeDto(targetWellnessLectureTypeDto)
+                    .reservationExtensionList(reservationDtoList
+                            .stream()
+                            .filter(reservationDto -> !(reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION) ||
+                                    reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND) ||
+                                    reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)))
+                            .map(reservationDto -> {
+                                final MemberDto targetMemberDto = memberDtoList.stream()
+                                        .filter(memberDto -> memberDto.getId().equals(reservationDto.getMemberId()))
+                                        .findFirst()
+                                        .orElseThrow(() -> new RuntimeException("Error: Member is not found. id: " + reservationDto.getMemberId()));
+                                return WellnessLectureMobileDto.ReservationExtension.builder().reservationDto(reservationDto).memberDto(targetMemberDto).build();
+                            })
+                            .toList()
+                    )
+                    .build();
+        }).toList();
+    }
+
+    @Override
     public List<WellnessLectureMobileDto> getAllWellnessLectureListByCenterId(Long memberId, Long centerId) {
         final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService.getAllByCenterIdAndIsDeleteFalse(centerId);
+        final List<Long> wellnessLectureIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getId).distinct().toList();
+        final List<ReservationDto> reservationDtoList = reservationService.getAllByWellnessLectureIdList(wellnessLectureIdList);
+        return wellnessLectureDtoList
+                .stream()
+                .map(wellnessLectureDto -> {
+                    final List<ReservationDto> targetReservationDtoList = reservationDtoList
+                            .stream()
+                            .filter(reservationDto -> !reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION))
+                            .filter(reservationDto -> !reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION))
+                            .filter(reservationDto -> !reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND))
+                            .filter(reservationDto -> reservationDto.getWellnessLectureId().equals(wellnessLectureDto.getId()))
+                            .toList();
+
+                    final List<WellnessLectureMobileDto.ReservationExtension> reservationExtensionList = targetReservationDtoList.stream().map(reservationDto -> WellnessLectureMobileDto.ReservationExtension.builder().reservationDto(reservationDto).build()).toList();
+
+                    return WellnessLectureMobileDto.builder()
+                            .wellnessLectureDto(wellnessLectureDto)
+                            .reservationExtensionList(reservationExtensionList)
+                            .build();
+                })
+                .toList();
+    }
+
+    @Override
+    public List<WellnessLectureMobileDto> getAllWellnessLectureListByMemberId(Long memberId) {
+        final List<TeacherDto> teacherDtoList = teacherService.getAllByMemberId(memberId);
+        final List<Long> teacherIdList = teacherDtoList.stream().map(TeacherDto::getId).toList();
+        final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService.getAllByTeacherIdList(teacherIdList);
         final List<Long> wellnessLectureIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getId).distinct().toList();
         final List<ReservationDto> reservationDtoList = reservationService.getAllByWellnessLectureIdList(wellnessLectureIdList);
         return wellnessLectureDtoList

@@ -153,6 +153,14 @@ public class WellnessLectureServiceImpl implements WellnessLectureService{
     }
 
     @Override
+    public List<WellnessLectureDto> getAllByTeacherIdListAndStartDateTimeBetweenAndIsDeleteFalse(List<Long> teacherIdList, ZonedDateTime startDateTime, ZonedDateTime endDateTime) {
+        final List<WellnessLectureEntity> wellnessLectureEntityList = wellnessLectureRepository.findAllByTeacherIdInAndStartDateTimeBetweenAndIsDeleteFalseOrderByStartDateTimeAsc(teacherIdList, startDateTime, endDateTime);
+        return wellnessLectureEntityList.stream()
+                .map(WellnessLectureDto::from)
+                .toList();
+    }
+
+    @Override
     public List<WellnessLectureDto> getAllByCenterIdAndTeacherIdAndStartDateTimeBetweenAndIsDeleteFalse(Long centerId, Long teacherId, ZonedDateTime startDateTime, ZonedDateTime endDateTime) {
         final List<WellnessLectureEntity> wellnessLectureEntityList = wellnessLectureRepository.findAllByCenterIdAndTeacherIdAndStartDateTimeBetweenAndIsDeleteFalseOrderByStartDateTimeAsc(centerId, teacherId, startDateTime, endDateTime);
         return wellnessLectureEntityList.stream()

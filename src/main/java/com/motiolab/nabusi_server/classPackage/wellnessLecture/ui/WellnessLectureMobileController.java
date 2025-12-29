@@ -7,6 +7,7 @@ import com.motiolab.nabusi_server.classPackage.wellnessClass.application.dto.res
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.WellnessLectureMobileService;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.WellnessLectureMobileDto;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.response.GetAllWellnessLectureListByCenterIdAndDateResponse;
+import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.response.GetAllWellnessLectureListByMemberIdAndDateResponse;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.response.GetAllWellnessLectureScheduleByCenterIdResponse;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.response.GetWellnessLectureDetailByWellnessLectureIdResponse;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.WellnessLectureReviewDto;
@@ -135,62 +136,140 @@ public class WellnessLectureMobileController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/v1/mobile/wellness-lecture/my/schedule")
+    public ResponseEntity<GetAllWellnessLectureScheduleByCenterIdResponse> getAllWellnessLectureScheduleByMemberId(
+            final @MemberId Long memberId) {
+        final List<WellnessLectureMobileDto> wellnessLectureMobileDtoList = wellnessLectureMobileService
+                .getAllWellnessLectureListByMemberId(memberId);
+        final List<WellnessLectureMobileDto> sortedList = wellnessLectureMobileDtoList.stream()
+                .sorted(Comparator.comparing(
+                        (WellnessLectureMobileDto dto) -> dto.getWellnessLectureDto().getStartDateTime(),
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+
+        if (sortedList.isEmpty()) {
+            return ResponseEntity.ok(GetAllWellnessLectureScheduleByCenterIdResponse.builder().build());
+        }
+
+        final List<ZonedDateTime> eventDays = wellnessLectureMobileDtoList.stream()
+                .filter(wellnessLectureMobileDto -> {
+                    if (wellnessLectureMobileDto.getReservationExtensionList() != null) {
+                        return wellnessLectureMobileDto.getReservationExtensionList().stream()
+                                .anyMatch(reservationExtension -> reservationExtension
+                                        .getReservationDto().getMemberId()
+                                        .equals(memberId));
+                    }
+                    return false;
+                })
+                .map(wellnessLectureMobileDto -> wellnessLectureMobileDto.getWellnessLectureDto()
+                        .getStartDateTime())
+                .toList();
+
+        final List<ZonedDateTime> activeDays = wellnessLectureMobileDtoList.stream()
+                .map(wellnessLectureMobileDto -> wellnessLectureMobileDto.getWellnessLectureDto()
+                        .getStartDateTime())
+                .toList();
+
+        final GetAllWellnessLectureScheduleByCenterIdResponse response = GetAllWellnessLectureScheduleByCenterIdResponse
+                .builder()
+                .initSelectedDate(wellnessLectureMobileDtoList.get(0).getWellnessLectureDto()
+                        .getStartDateTime())
+                .holidays(getKoreanHolidays())
+                .eventDays(eventDays)
+                .activeDays(activeDays)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/v1/mobile/wellness-lecture/list")
     public ResponseEntity<List<GetAllWellnessLectureListByCenterIdAndDateResponse>> getAllWellnessLectureListByCenterIdAndDate(final @MemberId Long memberId, final @RequestParam Long centerId, final @RequestParam ZonedDateTime startDateTime, final @RequestParam ZonedDateTime endDateTime) {
         List<WellnessLectureMobileDto> wellnessLectureMobileDtoList = wellnessLectureMobileService.getAllWellnessLectureListByCenterIdAndDate(memberId, centerId, startDateTime, endDateTime);
 
         final List<GetAllWellnessLectureListByCenterIdAndDateResponse> responseList = wellnessLectureMobileDtoList
                 .stream()
-                .map(wellnessLectureMobileDto -> {
-                    String status;
-                    if (wellnessLectureMobileDto.getMyReservationDto() != null) {
-                        if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.ABSENT)) {
-                            status = "결석";
-                        }else if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.CHECK_IN)) {
-                            status = "출석";
-                        }else if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION)) {
-                            status = "예약취소";
-                        }else if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND)) {
-                            status = "예약취소";
-                        }else if(wellnessLectureMobileDto.getMyReservationDto().getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)) {
-                            status = "예약취소";
-                        }
-                        else {
-                            status = "예약완료";
-                        }
-                    }else {
-                        ZonedDateTime lectureStartDateTime = wellnessLectureMobileDto.getWellnessLectureDto().getStartDateTime();
-                        ZonedDateTime lectureEndDateTime = wellnessLectureMobileDto.getWellnessLectureDto().getEndDateTime();
-                        if(lectureStartDateTime.isBefore(ZonedDateTime.now()) && lectureEndDateTime.isAfter(ZonedDateTime.now())) {
-                            status = "수업중";
-                        } else if(lectureEndDateTime.isBefore(ZonedDateTime.now())) {
-                            status = "수업완료";
-                        } else if(wellnessLectureMobileDto.getReservationExtensionList().size() >= wellnessLectureMobileDto.getWellnessLectureDto().getMaxReservationCnt()) {
-                            status = "정원초과";
-                        } else {
-                            status = "예약가능";
-                        }
-                    }
-
-                    return GetAllWellnessLectureListByCenterIdAndDateResponse.builder()
-                            .id(wellnessLectureMobileDto.getWellnessLectureDto().getId())
-                            .lectureImageUrl(wellnessLectureMobileDto.getWellnessLectureDto().getLectureImageUrlList().get(0))
-                            .status(status)
-                            .name(wellnessLectureMobileDto.getWellnessLectureDto().getName())
-                            .teacherName(wellnessLectureMobileDto.getTeacherDto().getName())
-                            .room(wellnessLectureMobileDto.getWellnessLectureDto().getRoom())
-                            .startDateTime(wellnessLectureMobileDto.getWellnessLectureDto().getStartDateTime())
-                            .endDateTime(wellnessLectureMobileDto.getWellnessLectureDto().getEndDateTime())
-                            .isFullBooking(wellnessLectureMobileDto.getReservationExtensionList().size() >= wellnessLectureMobileDto.getWellnessLectureDto().getMaxReservationCnt())
-                            .wellnessLectureTypeName(wellnessLectureMobileDto.getWellnessLectureTypeDto().name())
-                            .wellnessLectureTypeDescription(wellnessLectureMobileDto.getWellnessLectureTypeDto().description())
-                            .isCreatedReview(wellnessLectureMobileDto.getMyWellnessLectureReviewDto() != null)
-                            .build();
-                }).toList();
+                .map(wellnessLectureMobileDto -> GetAllWellnessLectureListByCenterIdAndDateResponse.builder()
+                        .id(wellnessLectureMobileDto.getWellnessLectureDto().getId())
+                        .lectureImageUrl(wellnessLectureMobileDto.getWellnessLectureDto().getLectureImageUrlList().get(0))
+                        .status(calculateStatus(wellnessLectureMobileDto))
+                        .name(wellnessLectureMobileDto.getWellnessLectureDto().getName())
+                        .teacherName(wellnessLectureMobileDto.getTeacherDto().getName())
+                        .room(wellnessLectureMobileDto.getWellnessLectureDto().getRoom())
+                        .startDateTime(wellnessLectureMobileDto.getWellnessLectureDto().getStartDateTime())
+                        .endDateTime(wellnessLectureMobileDto.getWellnessLectureDto().getEndDateTime())
+                        .isFullBooking(wellnessLectureMobileDto.getReservationExtensionList().size() >= wellnessLectureMobileDto.getWellnessLectureDto().getMaxReservationCnt())
+                        .wellnessLectureTypeName(wellnessLectureMobileDto.getWellnessLectureTypeDto().name())
+                        .wellnessLectureTypeDescription(wellnessLectureMobileDto.getWellnessLectureTypeDto().description())
+                        .isCreatedReview(wellnessLectureMobileDto.getMyWellnessLectureReviewDto() != null)
+                        .build()).toList();
 
         return ResponseEntity.ok(responseList);
     }
 
+    @GetMapping("/v1/mobile/wellness-lecture/my/list")
+    public ResponseEntity<List<GetAllWellnessLectureListByMemberIdAndDateResponse>> getAllWellnessLectureListByMemberIdAndDate(
+            final @MemberId Long memberId, final @RequestParam ZonedDateTime startDateTime,
+            final @RequestParam ZonedDateTime endDateTime) {
+        List<WellnessLectureMobileDto> wellnessLectureMobileDtoList = wellnessLectureMobileService
+                .getAllWellnessLectureListByMemberIdAndDate(memberId, startDateTime, endDateTime);
+
+        final List<GetAllWellnessLectureListByMemberIdAndDateResponse> responseList = wellnessLectureMobileDtoList
+                .stream()
+                .map(wellnessLectureMobileDto -> GetAllWellnessLectureListByMemberIdAndDateResponse
+                        .builder()
+                        .id(wellnessLectureMobileDto.getWellnessLectureDto().getId())
+                        .lectureImageUrl(wellnessLectureMobileDto.getWellnessLectureDto().getLectureImageUrlList().get(0))
+                        .status(calculateStatus(wellnessLectureMobileDto))
+                        .name(wellnessLectureMobileDto.getWellnessLectureDto().getName())
+                        .teacherName(wellnessLectureMobileDto.getTeacherDto().getName())
+                        .room(wellnessLectureMobileDto.getWellnessLectureDto().getRoom())
+                        .startDateTime(wellnessLectureMobileDto.getWellnessLectureDto().getStartDateTime())
+                        .endDateTime(wellnessLectureMobileDto.getWellnessLectureDto().getEndDateTime())
+                        .isFullBooking(wellnessLectureMobileDto.getReservationExtensionList().size() >= wellnessLectureMobileDto.getWellnessLectureDto().getMaxReservationCnt())
+                        .wellnessLectureTypeName(wellnessLectureMobileDto.getWellnessLectureTypeDto().name())
+                        .wellnessLectureTypeDescription(wellnessLectureMobileDto.getWellnessLectureTypeDto().description())
+                        .isCreatedReview(wellnessLectureMobileDto.getMyWellnessLectureReviewDto() != null)
+                        .reservation(wellnessLectureMobileDto
+                                .getReservationExtensionList() == null
+                                ? null
+                                : wellnessLectureMobileDto
+                                .getReservationExtensionList()
+                                .stream()
+                                .map(ext -> GetAllWellnessLectureListByMemberIdAndDateResponse.Reservation
+                                        .builder()
+                                        .id(ext.getReservationDto().getId())
+                                        .centerId(ext.getReservationDto().getCenterId())
+                                        .memberId(ext.getReservationDto().getMemberId())
+                                        .memberName(ext.getMemberDto().getName())
+                                        .memberMobile(ext.getMemberDto().getMobile())
+                                        .paymentId(ext.getReservationDto().getPaymentId())
+                                        .actionMemberId(ext.getReservationDto().getActionMemberId())
+                                        .status(ext.getReservationDto().getStatus().toString())
+                                        .wellnessLectureId(ext.getReservationDto().getWellnessLectureId())
+                                        .wellnessTicketIssuance(
+                                                ext.getWellnessTicketIssuanceDto() == null
+                                                        ? null
+                                                        : GetAllWellnessLectureListByMemberIdAndDateResponse.Reservation.WellnessTicketIssuance
+                                                        .builder()
+                                                        .id(ext.getWellnessTicketIssuanceDto().getId())
+                                                        .name(ext.getWellnessTicketIssuanceDto().getName())
+                                                        .startDate(ext.getWellnessTicketIssuanceDto().getStartDate())
+                                                        .expireDate(ext.getWellnessTicketIssuanceDto().getExpireDate())
+                                                        .type(ext.getWellnessTicketIssuanceDto().getType())
+                                                        .backgroundColor(ext.getWellnessTicketIssuanceDto().getBackgroundColor())
+                                                        .textColor(ext.getWellnessTicketIssuanceDto().getTextColor())
+                                                        .limitType(ext.getWellnessTicketIssuanceDto().getLimitType())
+                                                        .limitCnt(ext.getWellnessTicketIssuanceDto().getLimitCnt())
+                                                        .remainingCnt(ext.getWellnessTicketIssuanceDto().getRemainingCnt())
+                                                        .totalUsableCnt(ext.getWellnessTicketIssuanceDto().getTotalUsableCnt())
+                                                        .build())
+                                        .build())
+                                .toList())
+                        .build())
+                .toList();
+
+        return ResponseEntity.ok(responseList);
+    }
 
     @GetMapping("/v1/mobile/wellness-lecture/booking/date/{wellnessClassId}")
     public ResponseEntity<GetWellnessLectureBookingDateListByWellnessClassIdResponse> getWellnessLectureBookingDateListByWellnessClassId(final @MemberId Long memberId, @PathVariable Long wellnessClassId) {
@@ -293,5 +372,39 @@ public class WellnessLectureMobileController {
                 "2027-05-05", "2027-06-06", "2027-08-15", "2027-09-15", "2027-09-16", "2027-09-17",
                 "2027-09-18", "2027-10-03", "2027-10-09", "2027-12-25"
         );
+    }
+
+    private String calculateStatus(WellnessLectureMobileDto wellnessLectureMobileDto) {
+        if (wellnessLectureMobileDto.getMyReservationDto() != null) {
+            ReservationStatus status = wellnessLectureMobileDto.getMyReservationDto().getStatus();
+            if (status.equals(ReservationStatus.ABSENT)) {
+                return "결석";
+            } else if (status.equals(ReservationStatus.CHECK_IN)) {
+                return "출석";
+            } else if (status.equals(ReservationStatus.MEMBER_CANCELED_RESERVATION) ||
+                    status.equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND) ||
+                    status.equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)) {
+                return "예약취소";
+            } else {
+                return "예약완료";
+            }
+        } else {
+            ZonedDateTime lectureStartDateTime = wellnessLectureMobileDto.getWellnessLectureDto()
+                    .getStartDateTime();
+            ZonedDateTime lectureEndDateTime = wellnessLectureMobileDto.getWellnessLectureDto()
+                    .getEndDateTime();
+            if (lectureStartDateTime.isBefore(ZonedDateTime.now())
+                    && lectureEndDateTime.isAfter(ZonedDateTime.now())) {
+                return "수업중";
+            } else if (lectureEndDateTime.isBefore(ZonedDateTime.now())) {
+                return "수업완료";
+            } else if (wellnessLectureMobileDto.getReservationExtensionList()
+                    .size() >= wellnessLectureMobileDto.getWellnessLectureDto()
+                    .getMaxReservationCnt()) {
+                return "정원초과";
+            } else {
+                return "예약가능";
+            }
+        }
     }
 }

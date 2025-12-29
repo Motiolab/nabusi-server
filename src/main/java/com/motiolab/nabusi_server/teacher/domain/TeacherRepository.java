@@ -11,4 +11,6 @@ public interface TeacherRepository extends JpaRepository<TeacherEntity, Long> {
     Optional<TeacherEntity> findByCenterIdAndMemberId(Long centerId, Long memberId);
 
     List<TeacherEntity> findAllByCenterId(Long centerId);
+
+    List<TeacherEntity> findAllByMemberId(Long memberId);
 }

@@ -20,4 +20,6 @@ public interface TeacherService {
     void delete(Long id);
 
     void restore(Long id);
+
+    List<TeacherDto> getAllByMemberId(Long memberId);
 }
