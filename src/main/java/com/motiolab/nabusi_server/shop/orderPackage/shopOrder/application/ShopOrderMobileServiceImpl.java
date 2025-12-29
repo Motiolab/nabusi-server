@@ -4,6 +4,9 @@ import com.motiolab.nabusi_server.memberPackage.memberPoint.application.MemberPo
 import com.motiolab.nabusi_server.memberPackage.memberPointHistory.application.MemberPointHistoryService;
 import com.motiolab.nabusi_server.memberPackage.memberPointHistory.application.dto.MemberPointHistoryDto;
 import com.motiolab.nabusi_server.memberPackage.memberPointHistory.domain.PointTransactionType;
+import com.motiolab.nabusi_server.memberPackage.member.application.MemberService;
+import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
+import com.motiolab.nabusi_server.notificationPackage.notificationFcmHistory.application.FcmNotificationHistoryService;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderDto;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderMobileDto;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CreateOrderWithPaymentConfirmMobileRequestV1;
@@ -14,7 +17,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.motiolab.nabusi_server.exception.customException.InsufficientStockException;
 import com.motiolab.nabusi_server.exception.customException.PaymentFailureException;
@@ -53,6 +59,8 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
         private final ShopOrderRepository shopOrderRepository;
         private final PaymentService paymentService;
         private final TossPayService tossPayService;
+        private final MemberService memberService;
+        private final FcmNotificationHistoryService fcmNotificationHistoryService;
 
         @Transactional
         @Override
@@ -197,7 +205,29 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
                 final String fcmToken = fcmTokenMobileService
                                 .getFcmTokenByMemberId(createOrderWithPaymentConfirmMobileRequestV1.getMemberId());
                 if (fcmToken != null) {
-                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "주문 완료", "주문이 완료되었습니다.");
+                        final MemberDto author = memberService
+                                        .getById(createOrderWithPaymentConfirmMobileRequestV1.getMemberId());
+                        final String title = "주문 완료";
+                        final String body = "주문이 완료되었습니다.";
+                        final String productDetail = storedShopOrderItemDtoList.stream()
+                                        .map(item -> "상품명: " + item.getProductName() + " (" + item.getOptionName()
+                                                        + ") / 수량: " + item.getQuantity())
+                                        .collect(Collectors.joining("\n"));
+
+                        final String detail = "[주문 완료 정보]\n" +
+                                        "주문자: " + author.getName() + " (" + author.getMobile() + ")\n" +
+                                        "주문일시: " + LocalDateTime.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                        + "\n" +
+                                        "주문 ID: " + storedShopOrderDto.getId() + "\n" +
+                                        "결제 금액: " + storedShopOrderDto.getTotalPrice() + "\n" +
+                                        "\n" +
+                                        "[상품 정보]\n" +
+                                        productDetail;
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, title, body);
+                        fcmNotificationHistoryService.save(createOrderWithPaymentConfirmMobileRequestV1.getMemberId(),
+                                        title,
+                                        body, detail);
                 }
 
                 return ShopOrderMobileDto.builder()
@@ -312,9 +342,28 @@ public class ShopOrderMobileServiceImpl implements ShopOrderMobileService {
                 // 4. FCM 알림 발송
                 final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(shopOrderEntity.getMemberId());
                 if (fcmToken != null) {
-                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "주문 취소 완료", "주문이 취소되었습니다.");
-                }
+                        final MemberDto author = memberService.getById(shopOrderEntity.getMemberId());
+                        final String title = "주문 취소 완료";
+                        final String body = "주문이 취소되었습니다.";
+                        final String productDetail = orderItems.stream()
+                                        .map(item -> "상품명: " + item.getProductName() + " (" + item.getOptionName()
+                                                        + ") / 수량: " + item.getQuantity())
+                                        .collect(Collectors.joining("\n"));
 
+                        final String detail = "[주문 취소 완료 정보]\n" +
+                                        "취소 요청자: " + author.getName() + " (" + author.getMobile() + ")\n" +
+                                        "취소일시: " + LocalDateTime.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                        + "\n" +
+                                        "취소 주문 ID: " + shopOrderEntity.getId() + "\n" +
+                                        "취소 사유: " + cancelShopOrderMobileRequestV1.getCancelReason() + "\n" +
+                                        "\n" +
+                                        "[상품 정보]\n" +
+                                        productDetail;
+
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, title, body);
+                        fcmNotificationHistoryService.save(shopOrderEntity.getMemberId(), title, body, detail);
+                }
                 // 5. 주문 상태 변경
                 shopOrderEntity.updateStatus(ShopOrderStatus.CANCELED);
                 shopOrderRepository.save(shopOrderEntity);

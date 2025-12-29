@@ -11,8 +11,9 @@ import com.motiolab.nabusi_server.classPackage.wellnessLectureType.application.d
 import com.motiolab.nabusi_server.exception.customException.*;
 import com.motiolab.nabusi_server.fcmTokenMobile.application.FcmTokenMobileService;
 import com.motiolab.nabusi_server.memberPackage.member.application.MemberService;
-import com.motiolab.nabusi_server.memberPackage.memberMemo.application.MemberMemoService;
+import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
 import com.motiolab.nabusi_server.notificationPackage.notificationFcm.application.NotificationFcmAdminService;
+import com.motiolab.nabusi_server.notificationPackage.notificationFcmHistory.application.FcmNotificationHistoryService;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.PaymentMobileService;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.PaymentDto;
 import com.motiolab.nabusi_server.paymentPackage.payment.application.dto.request.CreateTossPayRequest;
@@ -44,7 +45,9 @@ import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Locale;
@@ -56,7 +59,6 @@ import java.util.Objects;
 public class ReservationMobileServiceImpl implements ReservationMobileService {
         private final ReservationService reservationService;
         private final MemberService memberService;
-        private final MemberMemoService memberMemoService;
         private final WellnessTicketIssuanceService wellnessTicketIssuanceService;
         private final WellnessLectureService wellnessLectureService;
         private final WellnessTicketIssuanceHistoryService wellnessTicketIssuanceHistoryService;
@@ -71,6 +73,7 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
         private final PolicyWellnessClassService policyWellnessClassService;
         private final PaymentService paymentService;
         private final TossPayService tossPayService;
+        private final FcmNotificationHistoryService fcmNotificationHistoryService;
 
         @Transactional
         @Override
@@ -389,8 +392,35 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
 
                 final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(request.getMemberId());
                 if (fcmToken != null) {
-                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "수업 예약 완료",
-                                        "수업 예약이 성공적으로 완료되었습니다.");
+                        final MemberDto author = memberService.getById(request.getMemberId());
+                        final WellnessLectureDto lecture = wellnessLectureService
+                                        .getById(request.getWellnessLectureId());
+                        final TeacherDto teacher = teacherService.getById(lecture.getTeacherId());
+                        final CenterDto center = centerService.getById(lecture.getCenterId());
+
+                        final String title = "수업 예약 완료";
+                        final String body = "수업 예약이 성공적으로 완료되었습니다.";
+                        final String detail = "[수업 예약 완료 정보]\n" +
+                                        "예약자: " + author.getName() + " (" + author.getMobile() + ")\n" +
+                                        "예약일시: " + LocalDateTime.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                        + "\n" +
+                                        "수업 이름: " + lecture.getName() + "\n" +
+                                        "수업 선생님: " + teacher.getName() + "\n" +
+                                        "센터: " + center.getName();
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, title, body);
+                        fcmNotificationHistoryService.save(request.getMemberId(), title, body, detail);
+
+                        final Long teacherMemberId = teacher.getMemberId();
+                        if (!Objects.equals(teacherMemberId, request.getMemberId())) {
+                                final String fcmTokenTeacher = fcmTokenMobileService
+                                                .getFcmTokenByMemberId(teacherMemberId);
+                                if (fcmTokenTeacher != null) {
+                                        notificationFcmAdminService.sendNotificationFcmTest(fcmTokenTeacher, title,
+                                                        body);
+                                        fcmNotificationHistoryService.save(teacherMemberId, title, body, detail);
+                                }
+                        }
                 }
         }
 
@@ -455,8 +485,36 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
 
                 final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
                 if (fcmToken != null) {
-                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "수업 예약 취소 및 환불",
-                                        "수업 예약 취소와 환불이 성공적으로 완료되었습니다.");
+                        final MemberDto author = memberService.getById(memberId);
+                        final WellnessLectureDto wellnessLectureDto = wellnessLectureService
+                                        .getById(reservationDto.getWellnessLectureId());
+                        final TeacherDto teacher = teacherService.getById(wellnessLectureDto.getTeacherId());
+                        final CenterDto center = centerService.getById(wellnessLectureDto.getCenterId());
+                        final String title = "수업 예약 취소 및 환불";
+                        final String body = "수업 예약 취소와 환불이 성공적으로 완료되었습니다.";
+                        final String detail = "[수업 예약 취소 및 환불 정보]\n" +
+                                        "취소 요청자: " + author.getName() + " (" + author.getMobile() + ")\n" +
+                                        "취소일시: " + LocalDateTime.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                        + "\n" +
+                                        "수업 이름: " + wellnessLectureDto.getName() + "\n" +
+                                        "수업 선생님: " + teacher.getName() + "\n" +
+                                        "센터: " + center.getName() +
+                                        "취소 사유: " + refundReservationMobileRequestV1.getCancelReason();
+
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, title, body);
+                        fcmNotificationHistoryService.save(memberId, title, body, detail);
+
+                        final Long teacherMemberId = teacher.getMemberId();
+                        if (!Objects.equals(teacherMemberId, memberId)) {
+                                final String fcmTokenTeacher = fcmTokenMobileService
+                                                .getFcmTokenByMemberId(teacherMemberId);
+                                if (fcmTokenTeacher != null) {
+                                        notificationFcmAdminService.sendNotificationFcmTest(fcmTokenTeacher, title,
+                                                        body);
+                                        fcmNotificationHistoryService.save(teacherMemberId, title, body, detail);
+                                }
+                        }
                 }
         }
 

@@ -59,7 +59,7 @@ public class WellnessLectureReviewServiceImpl implements WellnessLectureReviewSe
     }
 
     @Override
-    public void create(WellnessLectureReviewDto wellnessLectureReviewDto) {
+    public WellnessLectureReviewDto create(WellnessLectureReviewDto wellnessLectureReviewDto) {
         final WellnessLectureReviewEntity wellnessLectureReviewEntity = WellnessLectureReviewEntity.create(
                 wellnessLectureReviewDto.getRating(),
                 wellnessLectureReviewDto.getWellnessLectureId(),
@@ -70,7 +70,7 @@ public class WellnessLectureReviewServiceImpl implements WellnessLectureReviewSe
                 wellnessLectureReviewDto.getContent(),
                 wellnessLectureReviewDto.getIsPrivate(),
                 wellnessLectureReviewDto.getIsDelete());
-        wellnessLectureReviewRepository.save(wellnessLectureReviewEntity);
+        return WellnessLectureReviewDto.from(wellnessLectureReviewRepository.save(wellnessLectureReviewEntity));
     }
 
     @Override

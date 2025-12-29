@@ -1,5 +1,7 @@
 package com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application;
 
+import com.motiolab.nabusi_server.centerPackage.center.application.CenterService;
+import com.motiolab.nabusi_server.centerPackage.center.application.dto.CenterDto;
 import com.motiolab.nabusi_server.centerPackage.center.application.dto.CenterRoomDto;
 import com.motiolab.nabusi_server.classPackage.wellnessClass.application.WellnessClassService;
 import com.motiolab.nabusi_server.classPackage.wellnessClass.application.dto.WellnessClassDto;
@@ -10,6 +12,7 @@ import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.request.CreateWellnessLectureReviewMobileRequest;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.dto.request.UpdateWellnessLectureReviewMobileRequest;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.WellnessLectureReviewCommentService;
+import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.dto.WellnessLectureReviewCommentDto;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.dto.request.CreateWellnessLectureReviewCommentMobileRequest;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReviewComment.application.dto.request.DeleteWellnessLectureReviewCommentMobileRequest;
 import com.motiolab.nabusi_server.exception.customException.ExistsAlreadyException;
@@ -20,6 +23,7 @@ import com.motiolab.nabusi_server.fcmTokenMobile.application.FcmTokenMobileServi
 import com.motiolab.nabusi_server.memberPackage.member.application.MemberService;
 import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
 import com.motiolab.nabusi_server.notificationPackage.notificationFcm.application.NotificationFcmAdminService;
+import com.motiolab.nabusi_server.notificationPackage.notificationFcmHistory.application.FcmNotificationHistoryService;
 import com.motiolab.nabusi_server.reservation.application.ReservationService;
 import com.motiolab.nabusi_server.reservation.application.dto.ReservationDto;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
@@ -28,6 +32,8 @@ import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,9 +46,11 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
         private final ReservationService reservationService;
         private final MemberService memberService;
         private final TeacherService teacherService;
+        private final CenterService centerService;
         private final WellnessLectureReviewCommentService wellnessLectureReviewCommentService;
         private final FcmTokenMobileService fcmTokenMobileService;
         private final NotificationFcmAdminService notificationFcmAdminService;
+        private final FcmNotificationHistoryService fcmNotificationHistoryService;
 
         @Override
         public void createWellnessLectureReview(Long memberId,
@@ -86,12 +94,36 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
                                 .isDelete(false)
                                 .build();
 
-                wellnessLectureReviewService.create(newWellnessLectureReviewDto);
+                final WellnessLectureReviewDto savedReview = wellnessLectureReviewService
+                                .create(newWellnessLectureReviewDto);
 
                 final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
                 if (fcmToken != null) {
-                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "리뷰 등록 완료",
-                                        "리뷰 등록이 성공적으로 완료되었습니다.");
+                        final TeacherDto teacher = teacherService.getById(wellnessLectureDto.getTeacherId());
+                        final CenterDto center = centerService.getById(wellnessClassDto.getCenterId());
+
+                        final String title = "리뷰 등록 완료";
+                        final String body = "리뷰 등록이 성공적으로 완료되었습니다.";
+                        final String detail = "[리뷰 등록 정보]\n" +
+                                        "리뷰 내용: " + newWellnessLectureReviewDto.getContent() +
+                                        "별점: " + newWellnessLectureReviewDto.getRating() +
+                                        "\n" +
+                                        "수업 이름: " + wellnessLectureDto.getName() + "\n" +
+                                        "선생님 이름: " + teacher.getName() + "\n" +
+                                        "센터 이름: " + center.getName() + "\n";
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, title, body);
+                        fcmNotificationHistoryService.save(memberId, title, body, detail);
+
+                        final Long teacherMemberId = teacher.getMemberId();
+                        if (!Objects.equals(teacherMemberId, memberId)) {
+                                final String fcmTokenTeacher = fcmTokenMobileService
+                                                .getFcmTokenByMemberId(teacherMemberId);
+                                if (fcmTokenTeacher != null) {
+                                        notificationFcmAdminService.sendNotificationFcmTest(fcmTokenTeacher, title,
+                                                        body);
+                                        fcmNotificationHistoryService.save(teacherMemberId, title, body, detail);
+                                }
+                        }
                 }
         }
 
@@ -263,19 +295,80 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
 
                 final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
                 if (fcmToken != null) {
-                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "답변 등록 완료",
-                                        "답변 등록이 성공적으로 완료되었습니다.");
+                        final WellnessLectureDto lecture = wellnessLectureService
+                                        .getById(wellnessLectureReviewDto.getWellnessLectureId());
+                        final CenterDto center = centerService.getById(wellnessLectureReviewDto.getCenterId());
+
+                        final String title = "답변 등록 완료";
+                        final String body = "답변 등록이 성공적으로 완료되었습니다.";
+                        final String detail = "[리뷰 답변 정보]\n" +
+                                        "답변 내용: " + createWellnessLectureReviewCommentMobileRequest.getContent() +
+                                        "\n" +
+                                        "[수업 & 리뷰 정보]\n" +
+                                        "수업 이름: " + lecture.getName() + "\n" +
+                                        "선생님 이름: " + teacherDto.getName() + "\n" +
+                                        "센터 이름: " + center.getName() + "\n" +
+                                        "리뷰 내용: " + wellnessLectureReviewDto.getContent() + "\n";
+
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, title, body);
+                        fcmNotificationHistoryService.save(memberId, title, body, detail);
+
+                        final Long reviewMemberId = wellnessLectureReviewDto.getMemberId();
+                        if (!Objects.equals(reviewMemberId, memberId)) {
+                                final String fcmTokenReviewMemberId = fcmTokenMobileService
+                                                .getFcmTokenByMemberId(reviewMemberId);
+                                if (fcmTokenReviewMemberId != null) {
+                                        notificationFcmAdminService.sendNotificationFcmTest(fcmTokenReviewMemberId,
+                                                        title, body);
+                                        fcmNotificationHistoryService.save(reviewMemberId, title, body, detail);
+                                }
+                        }
                 }
         }
 
         @Override
-        public void deleteComment(Long memberId, DeleteWellnessLectureReviewCommentMobileRequest deleteWellnessLectureReviewCommentMobileRequest) {
-            wellnessLectureReviewCommentService.delete(deleteWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewCommentId(), memberId);
+        public void deleteComment(Long memberId,
+                        DeleteWellnessLectureReviewCommentMobileRequest deleteWellnessLectureReviewCommentMobileRequest) {
+                final WellnessLectureReviewCommentDto commentDto = wellnessLectureReviewCommentService
+                                .getById(deleteWellnessLectureReviewCommentMobileRequest
+                                                .getWellnessLectureReviewCommentId());
 
-            final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
-            if (fcmToken != null) {
-                notificationFcmAdminService.sendNotificationFcmTest(fcmToken, "답변 삭제 완료",
-                        "답변 삭제가 성공적으로 완료되었습니다.");
-            }
+                final WellnessLectureReviewDto reviewDto = wellnessLectureReviewService
+                                .getById(commentDto.getWellnessLectureReviewId());
+                final TeacherDto teacherDto = teacherService.getById(reviewDto.getTeacherId());
+                final WellnessLectureDto lecture = wellnessLectureService.getById(reviewDto.getWellnessLectureId());
+                final CenterDto center = centerService.getById(reviewDto.getCenterId());
+
+                wellnessLectureReviewCommentService.delete(
+                                deleteWellnessLectureReviewCommentMobileRequest.getWellnessLectureReviewCommentId(),
+                                memberId);
+
+                final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(memberId);
+                if (fcmToken != null) {
+                        final String title = "답변 삭제 완료";
+                        final String body = "답변 삭제가 성공적으로 완료되었습니다.";
+                        final String detail = "[리뷰 답변 삭제 정보]\n" +
+                                        "삭제된 답변 내용: " + commentDto.getContent() + "\n" +
+                                        "\n" +
+                                        "[수업 & 리뷰 정보]\n" +
+                                        "수업 이름: " + lecture.getName() + "\n" +
+                                        "선생님 이름: " + teacherDto.getName() + "\n" +
+                                        "센터 이름: " + center.getName() + "\n" +
+                                        "리뷰 내용: " + reviewDto.getContent() + "\n";
+
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, title, body);
+                        fcmNotificationHistoryService.save(memberId, title, body, detail);
+
+                        final Long reviewMemberId = reviewDto.getMemberId();
+                        if (!Objects.equals(reviewMemberId, memberId)) {
+                                final String fcmTokenReviewMemberId = fcmTokenMobileService
+                                                .getFcmTokenByMemberId(reviewMemberId);
+                                if (fcmTokenReviewMemberId != null) {
+                                        notificationFcmAdminService.sendNotificationFcmTest(fcmTokenReviewMemberId,
+                                                        title, body);
+                                        fcmNotificationHistoryService.save(reviewMemberId, title, body, detail);
+                                }
+                        }
+                }
         }
 }

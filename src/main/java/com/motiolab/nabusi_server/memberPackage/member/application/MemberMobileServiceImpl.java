@@ -4,6 +4,9 @@ import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
 import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
 import com.motiolab.nabusi_server.memberPackage.member.application.dto.response.GetHomeSummaryMobileResponse;
+import com.motiolab.nabusi_server.memberPackage.member.application.dto.response.GetMemberMyInfoMobileResponse;
+import com.motiolab.nabusi_server.memberPackage.memberPoint.application.MemberPointService;
+import com.motiolab.nabusi_server.memberPackage.memberPoint.application.dto.MemberPointDto;
 import com.motiolab.nabusi_server.reservation.application.ReservationService;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.socialUser.appleUser.application.AppleUserService;
@@ -37,6 +40,7 @@ public class MemberMobileServiceImpl implements MemberMobileService {
     private final NaverTokenService naverTokenService;
     private final ReservationService reservationService;
     private final WellnessLectureReviewService wellnessLectureReviewService;
+    private final MemberPointService memberPointService;
 
     @Override
     public GetHomeSummaryMobileResponse getHomeSummary(Long memberId) {
@@ -55,6 +59,24 @@ public class MemberMobileServiceImpl implements MemberMobileService {
                 .attendanceCount((int) attendanceCount)
                 .reservationCount((int) reservationCount)
                 .reviewCount((int) reviewCount)
+                .build();
+    }
+
+    @Override
+    public GetMemberMyInfoMobileResponse getMyInfo(Long memberId) {
+        MemberDto memberDto = memberService.getById(memberId);
+        if (memberDto == null) {
+            throw new NotFoundException(MemberDto.class, memberId);
+        }
+
+        MemberPointDto memberPointDto = memberPointService.getByMemberId(memberId);
+        long totalPoints = memberPointDto != null ? memberPointDto.getPoint() : 0L;
+
+        return GetMemberMyInfoMobileResponse.builder()
+                .memberName(memberDto.getName())
+                .memberEmail(memberDto.getEmail())
+                .socialName(memberDto.getSocialName())
+                .totalPoints(totalPoints)
                 .build();
     }
 

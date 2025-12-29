@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface FcmTokenMobileRepository extends JpaRepository<FcmTokenMobileEntity, Long> {
     Optional<FcmTokenMobileEntity> findByMemberId(Long memberId);
+
+    Optional<FcmTokenMobileEntity> findByToken(String token);
 }

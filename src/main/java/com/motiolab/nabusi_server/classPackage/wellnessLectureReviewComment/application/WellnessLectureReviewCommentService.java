@@ -10,4 +10,6 @@ public interface WellnessLectureReviewCommentService {
     List<WellnessLectureReviewCommentDto> getAllByWellnessLectureReviewId(Long wellnessLectureReviewId);
 
     void delete(Long commentId, Long memberId);
+
+    WellnessLectureReviewCommentDto getById(Long id);
 }

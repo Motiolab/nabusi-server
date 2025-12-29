@@ -14,8 +14,10 @@ public class NotificationFcmAdminController {
     private final NotificationFcmAdminService notificationFcmAdminService;
 
     @PostMapping("/v1/admin/notification-fcm/test")
-    public ResponseEntity<Boolean> sendNotificationFcmTest(@RequestBody SendNotificationFcmTestRequestV1 sendNotificationFcmTestRequestV1) {
-        notificationFcmAdminService.sendNotificationFcmTest(sendNotificationFcmTestRequestV1.getFcmToken(), sendNotificationFcmTestRequestV1.getTitle(), sendNotificationFcmTestRequestV1.getBody());
+    public ResponseEntity<Boolean> sendNotificationFcmTest(
+            @RequestBody SendNotificationFcmTestRequestV1 sendNotificationFcmTestRequestV1) {
+        notificationFcmAdminService.sendNotificationFcmTest(sendNotificationFcmTestRequestV1.getFcmToken(),
+                sendNotificationFcmTestRequestV1.getTitle(), sendNotificationFcmTestRequestV1.getBody());
         return ResponseEntity.ok(true);
     }
 

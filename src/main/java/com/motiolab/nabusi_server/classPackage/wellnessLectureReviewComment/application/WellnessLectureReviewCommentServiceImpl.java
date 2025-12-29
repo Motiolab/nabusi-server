@@ -46,4 +46,11 @@ public class WellnessLectureReviewCommentServiceImpl implements WellnessLectureR
         entity.setIsDelete(true);
         wellnessLectureReviewCommentRepository.save(entity);
     }
+
+    @Override
+    public WellnessLectureReviewCommentDto getById(Long id) {
+        return wellnessLectureReviewCommentRepository.findById(id)
+                .map(WellnessLectureReviewCommentDto::from)
+                .orElseThrow(() -> new NotFoundException(WellnessLectureReviewCommentEntity.class, id));
+    }
 }

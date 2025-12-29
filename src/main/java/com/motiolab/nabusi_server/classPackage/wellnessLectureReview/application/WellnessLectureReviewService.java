@@ -18,7 +18,7 @@ public interface WellnessLectureReviewService {
 
     WellnessLectureReviewDto getByMemberIdAndWellnessLectureId(Long memberId, Long wellnessLectureId);
 
-    void create(WellnessLectureReviewDto wellnessLectureReviewDto);
+    WellnessLectureReviewDto create(WellnessLectureReviewDto wellnessLectureReviewDto);
 
     WellnessLectureReviewDto getById(Long id);
 

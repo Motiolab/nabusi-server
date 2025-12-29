@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Builder
 @Getter
@@ -16,7 +18,7 @@ public class MemberPointHistoryDto {
     private Long amount;
     private String description;
     private String referenceId;
-    private LocalDateTime createdDate;
+    private ZonedDateTime createdDate;
 
     public static MemberPointHistoryDto from(MemberPointHistoryEntity memberPointHistoryEntity) {
         return MemberPointHistoryDto.builder()
@@ -26,7 +28,7 @@ public class MemberPointHistoryDto {
                 .amount(memberPointHistoryEntity.getAmount())
                 .description(memberPointHistoryEntity.getDescription())
                 .referenceId(memberPointHistoryEntity.getReferenceId())
-                .createdDate(memberPointHistoryEntity.getCreatedDate())
+                .createdDate(memberPointHistoryEntity.getCreatedDate().atZone(ZoneId.of("UTC")))
                 .build();
     }
 }
