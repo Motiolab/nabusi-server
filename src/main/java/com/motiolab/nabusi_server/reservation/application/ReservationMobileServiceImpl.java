@@ -24,6 +24,7 @@ import com.motiolab.nabusi_server.reservation.application.dto.request.CancelRese
 import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.request.CreateReservationWithPaymentConfirmMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.request.RefundReservationMobileRequestV1;
+import com.motiolab.nabusi_server.reservation.application.dto.request.UpdateReservationStatusMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.request.ValidationReservationBeforePaymentMobileRequestV1;
 import com.motiolab.nabusi_server.reservation.application.dto.response.ReservationMobileDto;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
@@ -689,6 +690,40 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                         wellnessTicketIssuanceService.update(wellnessTicketIssuanceDto);
                         throw new TicketInvalidException(WellnessTicketIssuanceDto.class,
                                         wellnessTicketIssuanceDto.getId());
+                }
+        }
+
+        @Transactional
+        @Override
+        public void updateReservationStatus(Long memberId, UpdateReservationStatusMobileRequestV1 request) {
+                final ReservationDto reservationDto = reservationService.getById(request.getReservationId());
+                if (reservationDto == null) {
+                        throw new NotFoundException(ReservationDto.class, request.getReservationId());
+                }
+
+                final WellnessLectureDto wellnessLectureDto = wellnessLectureService
+                                .getById(reservationDto.getWellnessLectureId());
+                if (wellnessLectureDto == null) {
+                        throw new NotFoundException(WellnessLectureDto.class, reservationDto.getWellnessLectureId());
+                }
+
+                if (!wellnessLectureDto.getTeacherId().equals(memberId)) {
+                        throw new NoAuthorityException("해당 수업의 강사가 아닙니다.", WellnessLectureDto.class,
+                                        wellnessLectureDto.getId());
+                }
+                reservationDto.setStatus(request.getStatus());
+                reservationService.update(reservationDto);
+
+                final String fcmToken = fcmTokenMobileService.getFcmTokenByMemberId(reservationDto.getMemberId());
+                if (fcmToken != null) {
+                        final String title = "예약 상태 변경";
+                        final String body = "회원님의 예약 상태가 " + request.getStatus().getDescription() + "로 변경되었습니다.";
+                        final String detail = "예약 상태 변경 알림\n" +
+                                        "수업: " + wellnessLectureDto.getName() + "\n" +
+                                        "상태: " + request.getStatus().getDescription();
+
+                        notificationFcmAdminService.sendNotificationFcmTest(fcmToken, title, body);
+                        fcmNotificationHistoryService.save(reservationDto.getMemberId(), title, body, detail);
                 }
         }
 }
