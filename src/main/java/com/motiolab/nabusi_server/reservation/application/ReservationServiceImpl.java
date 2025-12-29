@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ReservationServiceImpl implements ReservationService {
-    private final  ReservationRepository reservationRepository;
+    private final ReservationRepository reservationRepository;
 
     @Override
     public ReservationDto create(ReservationDto reservationDto) {
@@ -24,27 +24,29 @@ public class ReservationServiceImpl implements ReservationService {
                 reservationDto.getActionMemberId(),
                 reservationDto.getStatus(),
                 reservationDto.getWellnessLectureId(),
-                reservationDto.getWellnessTicketIssuanceId()
-        );
+                reservationDto.getWellnessTicketIssuanceId());
         final ReservationEntity savedReservationEntity = reservationRepository.save(reservationEntity);
         return ReservationDto.from(savedReservationEntity);
     }
 
     @Override
     public List<ReservationDto> getAllByWellnessLectureId(Long wellnessLectureId) {
-        final List<ReservationEntity> reservationEntityList = reservationRepository.findAllByWellnessLectureId(wellnessLectureId);
+        final List<ReservationEntity> reservationEntityList = reservationRepository
+                .findAllByWellnessLectureId(wellnessLectureId);
         return reservationEntityList.stream().map(ReservationDto::from).toList();
     }
 
     @Override
     public List<ReservationDto> getAllByWellnessTicketIssuanceId(Long wellnessTicketIssuanceId) {
-        final List<ReservationEntity> reservationEntityList = reservationRepository.findAllByWellnessTicketIssuanceId(wellnessTicketIssuanceId);
+        final List<ReservationEntity> reservationEntityList = reservationRepository
+                .findAllByWellnessTicketIssuanceId(wellnessTicketIssuanceId);
         return reservationEntityList.stream().map(ReservationDto::from).toList();
     }
 
     @Override
     public List<ReservationDto> getAllByWellnessLectureIdList(List<Long> wellnessLectureIdList) {
-        final List<ReservationEntity> reservationEntityList = reservationRepository.findAllByWellnessLectureIdIn(wellnessLectureIdList);
+        final List<ReservationEntity> reservationEntityList = reservationRepository
+                .findAllByWellnessLectureIdIn(wellnessLectureIdList);
         return reservationEntityList.stream().map(ReservationDto::from).toList();
     }
 
@@ -67,8 +69,10 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public List<ReservationDto> getAllByMemberIdAndStatusList(Long memberId, List<ReservationStatus> reservationStatusList) {
-        final List<ReservationEntity> reservationEntityList = reservationRepository.findAllByMemberIdAndStatusIn(memberId, reservationStatusList);
+    public List<ReservationDto> getAllByMemberIdAndStatusList(Long memberId,
+            List<ReservationStatus> reservationStatusList) {
+        final List<ReservationEntity> reservationEntityList = reservationRepository
+                .findAllByMemberIdAndStatusIn(memberId, reservationStatusList);
         return reservationEntityList.stream().map(ReservationDto::from).toList();
     }
 
@@ -80,8 +84,20 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public List<ReservationDto> getAllByMemberIdListAndStatusList(List<Long> memberIdList, List<ReservationStatus> reservationStatusList) {
-        final List<ReservationEntity> reservationEntityList = reservationRepository.findAllByMemberIdInAndStatusIn(memberIdList, reservationStatusList);
+    public List<ReservationDto> getAllByMemberIdListAndStatusList(List<Long> memberIdList,
+            List<ReservationStatus> reservationStatusList) {
+        final List<ReservationEntity> reservationEntityList = reservationRepository
+                .findAllByMemberIdInAndStatusIn(memberIdList, reservationStatusList);
         return reservationEntityList.stream().map(ReservationDto::from).toList();
+    }
+
+    @Override
+    public long countByMemberIdAndStatus(Long memberId, ReservationStatus status) {
+        return reservationRepository.countByMemberIdAndStatus(memberId, status);
+    }
+
+    @Override
+    public long countByMemberIdAndStatusIn(Long memberId, List<ReservationStatus> statusList) {
+        return reservationRepository.countByMemberIdAndStatusIn(memberId, statusList);
     }
 }

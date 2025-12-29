@@ -8,9 +8,21 @@ import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<ReservationEntity, Long> {
     List<ReservationEntity> findAllByWellnessLectureId(Long wellnessLectureId);
+
     List<ReservationEntity> findAllByWellnessTicketIssuanceId(Long wellnessTicketIssuanceId);
+
     List<ReservationEntity> findAllByWellnessLectureIdIn(List<Long> wellnessLectureIdList);
+
     List<ReservationEntity> findAllByMemberIdAndStatusIn(Long memberId, List<ReservationStatus> reservationStatusList);
+
     Optional<ReservationEntity> findByMemberIdAndWellnessLectureId(Long memberId, Long wellnessLectureId);
-    List<ReservationEntity> findAllByMemberIdInAndStatusIn(List<Long> memberIdList, List<ReservationStatus> reservationStatusList);
+
+    List<ReservationEntity> findAllByMemberIdInAndStatusIn(List<Long> memberIdList,
+            List<ReservationStatus> reservationStatusList);
+
+    long countByMemberIdAndStatus(Long memberId, ReservationStatus status);
+
+    long countByMemberIdAndStatusIn(Long memberId, List<ReservationStatus> statusList);
+
+    long countByMemberId(Long memberId);
 }

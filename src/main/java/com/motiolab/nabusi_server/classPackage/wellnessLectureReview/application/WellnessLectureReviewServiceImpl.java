@@ -12,36 +12,42 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class WellnessLectureReviewServiceImpl implements WellnessLectureReviewService{
+public class WellnessLectureReviewServiceImpl implements WellnessLectureReviewService {
     private final WellnessLectureReviewRepository wellnessLectureReviewRepository;
 
     @Override
     public List<WellnessLectureReviewDto> getAllByWellnessLectureIdList(List<Long> wellnessLectureIdList) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByWellnessLectureIdIn(wellnessLectureIdList);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByWellnessLectureIdIn(wellnessLectureIdList);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
     @Override
     public List<WellnessLectureReviewDto> getAllByWellnessLectureId(Long wellnessLectureId) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByWellnessLectureId(wellnessLectureId);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByWellnessLectureId(wellnessLectureId);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
     @Override
     public List<WellnessLectureReviewDto> getAllByWellnessClassIdList(List<Long> wellnessClassIdList) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByWellnessClassIdIn(wellnessClassIdList);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByWellnessClassIdIn(wellnessClassIdList);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
     @Override
     public List<WellnessLectureReviewDto> getAllByTeacherIdList(List<Long> teacherIdList) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByTeacherIdIn(teacherIdList);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByTeacherIdIn(teacherIdList);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
     @Override
-    public List<WellnessLectureReviewDto> getAllByMemberIdAndWellnessLectureIdList(Long memberId, List<Long> wellnessLectureIdList) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByMemberIdAndWellnessLectureIdIn(memberId, wellnessLectureIdList);
+    public List<WellnessLectureReviewDto> getAllByMemberIdAndWellnessLectureIdList(Long memberId,
+            List<Long> wellnessLectureIdList) {
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByMemberIdAndWellnessLectureIdIn(memberId, wellnessLectureIdList);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
@@ -63,8 +69,7 @@ public class WellnessLectureReviewServiceImpl implements WellnessLectureReviewSe
                 wellnessLectureReviewDto.getCenterId(),
                 wellnessLectureReviewDto.getContent(),
                 wellnessLectureReviewDto.getIsPrivate(),
-                wellnessLectureReviewDto.getIsDelete()
-        );
+                wellnessLectureReviewDto.getIsDelete());
         wellnessLectureReviewRepository.save(wellnessLectureReviewEntity);
     }
 
@@ -82,40 +87,50 @@ public class WellnessLectureReviewServiceImpl implements WellnessLectureReviewSe
                     wellnessLectureReviewEntity.update(
                             wellnessLectureReviewDto.getContent(),
                             wellnessLectureReviewDto.getRating(),
-                            wellnessLectureReviewDto.getIsPrivate()
-                    );
+                            wellnessLectureReviewDto.getIsPrivate());
                     return wellnessLectureReviewRepository.save(wellnessLectureReviewEntity);
                 })
-                .orElseThrow(() -> new NotFoundException(WellnessLectureEntity.class, wellnessLectureReviewDto.getId()));
+                .orElseThrow(
+                        () -> new NotFoundException(WellnessLectureEntity.class, wellnessLectureReviewDto.getId()));
     }
 
     @Override
     public List<WellnessLectureReviewDto> getAllByWellnessClassId(Long wellnessClassId) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByWellnessClassId(wellnessClassId);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByWellnessClassId(wellnessClassId);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
     @Override
     public List<WellnessLectureReviewDto> getAllByMemberIdList(List<Long> memberIdList) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByMemberIdIn(memberIdList);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByMemberIdIn(memberIdList);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
     @Override
     public List<WellnessLectureReviewDto> getAllByCenterId(Long centerId) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByCenterId(centerId);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByCenterId(centerId);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
     @Override
     public List<WellnessLectureReviewDto> getAllByTeacherId(Long teacherId) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByTeacherId(teacherId);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByTeacherId(teacherId);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
     }
 
     @Override
     public List<WellnessLectureReviewDto> getAllByCenterIdList(List<Long> centerIdList) {
-        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository.findAllByCenterIdIn(centerIdList);
+        final List<WellnessLectureReviewEntity> wellnessLectureReviewEntityList = wellnessLectureReviewRepository
+                .findAllByCenterIdIn(centerIdList);
         return wellnessLectureReviewEntityList.stream().map(WellnessLectureReviewDto::from).toList();
+    }
+
+    @Override
+    public long countByMemberId(Long memberId) {
+        return wellnessLectureReviewRepository.countByMemberId(memberId);
     }
 }

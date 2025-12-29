@@ -1,7 +1,11 @@
 package com.motiolab.nabusi_server.memberPackage.member.application;
 
+import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.WellnessLectureReviewService;
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
 import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
+import com.motiolab.nabusi_server.memberPackage.member.application.dto.response.GetHomeSummaryMobileResponse;
+import com.motiolab.nabusi_server.reservation.application.ReservationService;
+import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.socialUser.appleUser.application.AppleUserService;
 import com.motiolab.nabusi_server.socialUser.appleUser.application.dto.AppleUserDto;
 import com.motiolab.nabusi_server.socialUser.kakaoUser.application.KakaoUserMobileService;
@@ -31,18 +35,41 @@ public class MemberMobileServiceImpl implements MemberMobileService {
     private final AppleUserService appleUserService;
     private final NaverUserMobileService naverUserMobileService;
     private final NaverTokenService naverTokenService;
+    private final ReservationService reservationService;
+    private final WellnessLectureReviewService wellnessLectureReviewService;
+
+    @Override
+    public GetHomeSummaryMobileResponse getHomeSummary(Long memberId) {
+        long attendanceCount = reservationService.countByMemberIdAndStatus(memberId, ReservationStatus.CHECK_IN);
+
+        List<ReservationStatus> activeStatusList = List.of(
+                ReservationStatus.INAPP_RESERVATION,
+                ReservationStatus.INAPP_PAYMENT_RESERVATION,
+                ReservationStatus.ADMIN_RESERVATION,
+                ReservationStatus.ONSITE_RESERVATION);
+        long reservationCount = reservationService.countByMemberIdAndStatusIn(memberId, activeStatusList);
+
+        long reviewCount = wellnessLectureReviewService.countByMemberId(memberId);
+
+        return GetHomeSummaryMobileResponse.builder()
+                .attendanceCount((int) attendanceCount)
+                .reservationCount((int) reservationCount)
+                .reviewCount((int) reviewCount)
+                .build();
+    }
 
     @Override
     public Boolean delete(Long memberId) {
         MemberDto memberDto = memberService.getById(memberId);
-        if(memberDto == null) throw new NotFoundException(MemberDto.class, memberId);
+        if (memberDto == null)
+            throw new NotFoundException(MemberDto.class, memberId);
 
         switch (memberDto.getSocialName()) {
             case "kakao" -> {
                 String randomValue = generateRandomNumber();
                 String resignedSocialId = kakaoUserMobileService.delete(memberId);
                 KakaoUserDto kakaoUserDto = kakaoUserService.getByMemberId(memberId);
-                kakaoUserDto.setPhoneNumber(convertToKorean(kakaoUserDto.getPhoneNumber()) + "-" + randomValue );
+                kakaoUserDto.setPhoneNumber(convertToKorean(kakaoUserDto.getPhoneNumber()) + "-" + randomValue);
                 kakaoUserService.patch(kakaoUserDto);
                 String mobilePrefix = convertToKorean(memberDto.getMobile());
                 memberService.updateMobile(memberId, mobilePrefix + "-" + generateRandomNumber());
@@ -50,7 +77,8 @@ public class MemberMobileServiceImpl implements MemberMobileService {
             case "naver" -> {
                 String randomValue = generateRandomNumber();
                 NaverTokenDto naverTokenDto = naverTokenService.getFirstByMemberIdOrderByCreatedDateDesc(memberId);
-                if(naverTokenDto == null) throw new NotFoundException(NaverTokenDto.class, memberId);
+                if (naverTokenDto == null)
+                    throw new NotFoundException(NaverTokenDto.class, memberId);
                 naverUserMobileService.resignNaverUser(naverTokenDto.getAccessToken());
                 NaverUserDto naverUserDto = naverUserService.getByMemberId(memberId);
                 naverUserDto.setMobileE164(convertToKorean(naverUserDto.getMobileE164()) + "-" + randomValue);
@@ -62,7 +90,7 @@ public class MemberMobileServiceImpl implements MemberMobileService {
             case "apple" -> {
                 String randomValue = generateRandomNumber();
                 AppleUserDto appleUserDto = appleUserService.getByMemberId(memberId);
-                appleUserDto.setMobile(convertToKorean(appleUserDto.getMobile())+ "-" + randomValue);
+                appleUserDto.setMobile(convertToKorean(appleUserDto.getMobile()) + "-" + randomValue);
                 appleUserDto.setSub("");
                 appleUserService.patchById(appleUserDto.getId(), appleUserDto);
                 String mobilePrefix = convertToKorean(memberDto.getMobile());
@@ -71,6 +99,7 @@ public class MemberMobileServiceImpl implements MemberMobileService {
         }
         return true;
     }
+
     private String convertToKorean(String number) {
         List<String> NUMBERS = new ArrayList<>(Arrays.asList("공", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"));
         if (!NUMBERS.stream().filter(number::contains).toList().isEmpty()) {
