@@ -16,4 +16,6 @@ public interface WellnessClassRepository extends JpaRepository<WellnessClassEnti
             nativeQuery = true)
     List<WellnessClassEntity> findAllByIssuedWellnessTicketManageIdListFindInSet(String wellnessTicketManagementIdList);
 
+    @Query("SELECT DISTINCT w.teacherId FROM WellnessClassEntity w WHERE w.isDelete = false")
+    List<Long> findDistinctTeacherIds();
 }

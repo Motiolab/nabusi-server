@@ -13,4 +13,5 @@ public interface WellnessClassService {
     List<WellnessClassDto> getAllById(List<Long>idList);
     List<WellnessClassDto> getAllByWellnessTicketManagementIdListIn(List<Long> wellnessTicketManagementIdList);
     WellnessClassDto getById(Long id);
+    List<Long> getDistinctTeacherIds();
 }

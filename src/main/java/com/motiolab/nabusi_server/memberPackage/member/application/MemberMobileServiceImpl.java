@@ -1,5 +1,7 @@
 package com.motiolab.nabusi_server.memberPackage.member.application;
 
+import com.motiolab.nabusi_server.classPackage.wellnessClass.application.WellnessClassService;
+import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.WellnessLectureService;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.WellnessLectureReviewService;
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
 import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
@@ -19,6 +21,8 @@ import com.motiolab.nabusi_server.socialUser.naverToken.application.dto.NaverTok
 import com.motiolab.nabusi_server.socialUser.naverUser.application.NaverUserMobileService;
 import com.motiolab.nabusi_server.socialUser.naverUser.application.NaverUserService;
 import com.motiolab.nabusi_server.socialUser.naverUser.application.dto.NaverUserDto;
+import com.motiolab.nabusi_server.teacher.application.TeacherService;
+import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +45,8 @@ public class MemberMobileServiceImpl implements MemberMobileService {
     private final ReservationService reservationService;
     private final WellnessLectureReviewService wellnessLectureReviewService;
     private final MemberPointService memberPointService;
+    private final WellnessClassService wellnessClassService;
+    private final TeacherService teacherService;
 
     @Override
     public GetHomeSummaryMobileResponse getHomeSummary(Long memberId) {
@@ -69,14 +75,19 @@ public class MemberMobileServiceImpl implements MemberMobileService {
             throw new NotFoundException(MemberDto.class, memberId);
         }
 
-        MemberPointDto memberPointDto = memberPointService.getByMemberId(memberId);
-        long totalPoints = memberPointDto != null ? memberPointDto.getPoint() : 0L;
+        final MemberPointDto memberPointDto = memberPointService.getByMemberId(memberId);
+        final long totalPoints = memberPointDto != null ? memberPointDto.getPoint() : 0L;
+
+        final List<Long> teacherIds = wellnessClassService.getDistinctTeacherIds();
+        final List<TeacherDto> teacherDtoList = teacherService.getAllByIdList(teacherIds);
+        final List<Long> memberIdList = teacherDtoList.stream().map(TeacherDto::getMemberId).toList();
 
         return GetMemberMyInfoMobileResponse.builder()
                 .memberName(memberDto.getName())
                 .memberEmail(memberDto.getEmail())
                 .socialName(memberDto.getSocialName())
                 .totalPoints(totalPoints)
+                .isExistClass(memberIdList.contains(memberId))
                 .build();
     }
 

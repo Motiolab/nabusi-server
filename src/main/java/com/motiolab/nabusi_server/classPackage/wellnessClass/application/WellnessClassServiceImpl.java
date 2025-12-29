@@ -103,4 +103,9 @@ public class WellnessClassServiceImpl implements WellnessClassService{
                  .map(WellnessClassDto::from)
                  .orElse(null);
     }
+
+    @Override
+    public List<Long> getDistinctTeacherIds() {
+        return wellnessClassRepository.findDistinctTeacherIds();
+    }
 }

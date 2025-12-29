@@ -20,7 +20,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public List<TeacherDto> getAllByIdList(List<Long> idList) {
-        return  teacherRepository.findAllByIdIn(idList)
+        return teacherRepository.findAllByIdIn(idList)
                 .stream()
                 .map(TeacherDto::from)
                 .toList();
@@ -46,8 +46,7 @@ public class TeacherServiceImpl implements TeacherService {
                 teacherDto.getCenterId(),
                 teacherDto.getMemberId(),
                 teacherDto.getUseNickName(),
-                teacherDto.getIsDelete()
-        );
+                teacherDto.getIsDelete());
 
         teacherRepository.save(newTeacherEntity);
     }
@@ -77,8 +76,7 @@ public class TeacherServiceImpl implements TeacherService {
                 teacherDto.getCareer(),
                 teacherDto.getUseNickName(),
                 teacherDto.getImageUrl(),
-                teacherDto.getIsDelete()
-        );
+                teacherDto.getIsDelete());
 
         teacherRepository.save(teacherEntity);
     }
