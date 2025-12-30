@@ -86,7 +86,7 @@ logging:
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 3600000
-  refresh-token-expiration: 86400000
+  refresh-token-expiration: 7776000000
 
 kakao:
   admin-key: fc9a2392353a69910f77f44302c164ff
