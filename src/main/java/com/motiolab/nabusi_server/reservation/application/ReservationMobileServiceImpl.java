@@ -701,13 +701,13 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                         throw new NotFoundException(ReservationDto.class, request.getReservationId());
                 }
 
-                final WellnessLectureDto wellnessLectureDto = wellnessLectureService
-                                .getById(reservationDto.getWellnessLectureId());
+                final WellnessLectureDto wellnessLectureDto = wellnessLectureService.getById(reservationDto.getWellnessLectureId());
                 if (wellnessLectureDto == null) {
                         throw new NotFoundException(WellnessLectureDto.class, reservationDto.getWellnessLectureId());
                 }
 
-                if (!wellnessLectureDto.getTeacherId().equals(memberId)) {
+                final TeacherDto teacherDto = teacherService.getById(wellnessLectureDto.getTeacherId());
+                if (!teacherDto.getMemberId().equals(memberId)) {
                         throw new NoAuthorityException("해당 수업의 강사가 아닙니다.", WellnessLectureDto.class,
                                         wellnessLectureDto.getId());
                 }
