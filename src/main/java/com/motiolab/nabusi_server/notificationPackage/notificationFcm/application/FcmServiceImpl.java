@@ -31,8 +31,8 @@ public class FcmServiceImpl implements FcmService {
                     .build();
 
             // FCM을 이용하여 메시지 전송
-            String appName = FirebaseApp.getInstance().getName();
-            log.info("🔗 Using Firebase App: {}", appName);
+            FirebaseApp app = FirebaseApp.getInstance();
+            log.info("🔗 Using Firebase App: {} (Project ID: {})", app.getName(), app.getOptions().getProjectId());
 
             String response = FirebaseMessaging.getInstance().send(message);
             log.info("✅ Successfully sent message. Response: {}", response);

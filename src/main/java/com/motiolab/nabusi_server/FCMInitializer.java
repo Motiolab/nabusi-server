@@ -27,10 +27,12 @@ public class FCMInitializer {
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options);
-                log.info("🔥 Firebase (default) has been initialized successfully");
+                log.info("🔥 Firebase (default) has been initialized successfully. Project ID: {}",
+                        options.getProjectId());
             } else {
-                log.info("ℹ️ Firebase already initialized. Existing apps: {}",
-                        FirebaseApp.getApps().stream().map(FirebaseApp::getName).toList());
+                log.info("ℹ️ Firebase already initialized. Existing apps: {}. Default Project ID: {}",
+                        FirebaseApp.getApps().stream().map(FirebaseApp::getName).toList(),
+                        FirebaseApp.getInstance().getOptions().getProjectId());
             }
         } catch (IOException e) {
             log.error("❌ Firebase initialization failed: {}", e.getMessage(), e);
