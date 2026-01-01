@@ -88,6 +88,7 @@ public class ReservationMobileServiceImpl implements ReservationMobileService {
                 if (reservationDtoExist != null) {
                         reservationDtoExist.setStatus(createReservationMobileRequestV1.getStatus());
                         reservationService.update(reservationDtoExist);
+                        return;
                 }
 
                 final WellnessLectureDto wellnessLectureDto = wellnessLectureService

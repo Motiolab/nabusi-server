@@ -22,8 +22,10 @@ public class KakaUserMobileController {
     private final KakaoUserMobileService kakaoUserMobileService;
 
     @PostMapping("/v1/mobile/kakao-user/login")
-    public ResponseEntity<KakaoLoginMobileResponse> kakaoLoginMobile(@RequestBody KakaoLoginMobileRequestV1 kakaoLoginMobileRequestV1) throws JsonProcessingException {
-        final KakaoUserMobileDto kakaoUserMobileDto = kakaoUserMobileService.kakaoLogin(kakaoLoginMobileRequestV1.getKakaoAccessToken());
+    public ResponseEntity<KakaoLoginMobileResponse> kakaoLoginMobile(
+            @RequestBody KakaoLoginMobileRequestV1 kakaoLoginMobileRequestV1) throws JsonProcessingException {
+        final KakaoUserMobileDto kakaoUserMobileDto = kakaoUserMobileService
+                .kakaoLogin(kakaoLoginMobileRequestV1.getKakaoAccessToken());
 
         log.info("kakaoUserMobileDto : {}", kakaoUserMobileDto);
         return ResponseEntity.status(HttpStatus.OK)

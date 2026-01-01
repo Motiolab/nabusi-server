@@ -131,9 +131,6 @@ public class WellnessLectureMobileServiceImpl implements WellnessLectureMobileSe
                     .wellnessLectureTypeDto(targetWellnessLectureTypeDto)
                     .reservationExtensionList(reservationDtoList
                             .stream()
-                            .filter(reservationDto -> !(reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION) ||
-                                    reservationDto.getStatus().equals(ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND) ||
-                                    reservationDto.getStatus().equals(ReservationStatus.ADMIN_CANCELED_RESERVATION)))
                             .map(reservationDto -> {
                                 final MemberDto targetMemberDto = memberDtoList.stream()
                                         .filter(memberDto -> memberDto.getId().equals(reservationDto.getMemberId()))

@@ -21,8 +21,7 @@ public class ReservationMobileController {
         private final ReservationMobileService reservationMobileService;
 
         @PostMapping("/v1/mobile/reservation/create")
-        public ResponseEntity<CreateReservationAdminResponseV1> createReservation(@MemberId Long memberId,
-                        @RequestBody CreateReservationMobileRequestV1 createReservationMobileRequestV1) {
+        public ResponseEntity<CreateReservationAdminResponseV1> createReservation(@MemberId Long memberId, @RequestBody CreateReservationMobileRequestV1 createReservationMobileRequestV1) {
                 createReservationMobileRequestV1.setActionMemberId(memberId);
                 createReservationMobileRequestV1.setMemberId(memberId);
                 createReservationMobileRequestV1.setCenterId(createReservationMobileRequestV1.getCenterId());
