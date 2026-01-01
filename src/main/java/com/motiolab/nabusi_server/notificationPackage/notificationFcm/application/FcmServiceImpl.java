@@ -1,6 +1,8 @@
 package com.motiolab.nabusi_server.notificationPackage.notificationFcm.application;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.messaging.ApnsConfig;
+import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
@@ -28,6 +30,13 @@ public class FcmServiceImpl implements FcmService {
             Message message = Message.builder()
                     .setToken(token)
                     .setNotification(notification)
+                    .setApnsConfig(ApnsConfig.builder()
+                            .setAps(Aps.builder()
+                                    .setAlert(title)
+                                    .setSound("default")
+                                    .build())
+                            .putHeader("apns-topic", "com.motiolab.nabusi-ios") // 여기에 Bundle ID를 넣습니다.
+                            .build())
                     .build();
 
             // FCM을 이용하여 메시지 전송

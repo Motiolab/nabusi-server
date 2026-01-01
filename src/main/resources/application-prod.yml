@@ -115,6 +115,7 @@ apple:
 firebase:
   file:
     path: firebase/nabusi-f20e3-firebase-adminsdk-fbsvc-9902a35f55.json
+  project-id: nabusi-f20e3
 
 # aws
 cloud:
