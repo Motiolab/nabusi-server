@@ -2,7 +2,6 @@ package com.motiolab.nabusi_server;
 
 import lombok.extern.slf4j.Slf4j;
 import com.google.auth.oauth2.GoogleCredentials;
-import java.util.Collections;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
@@ -27,9 +26,7 @@ public class FCMInitializer {
         log.info("🚀 Initializing Firebase with file: {} and Project ID: {}", firebaseFilePath, projectId);
         try (InputStream serviceAccount = new ClassPathResource(firebaseFilePath).getInputStream()) {
             FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount)
-                            .createScoped(
-                                    Collections.singletonList("https://www.googleapis.com/auth/firebase.messaging")))
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .setProjectId(projectId)
                     .build();
 

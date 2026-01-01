@@ -35,7 +35,9 @@ public class FcmServiceImpl implements FcmService {
                                     .setAlert(title)
                                     .setSound("default")
                                     .build())
-                            .putHeader("apns-topic", "com.motiolab.nabusi-ios") // 여기에 Bundle ID를 넣습니다.
+                            .putHeader("apns-topic", "com.motiolab.nabusi-ios")
+                            .putHeader("apns-push-type", "alert")
+                            .putHeader("apns-priority", "10")
                             .build())
                     .build();
 
