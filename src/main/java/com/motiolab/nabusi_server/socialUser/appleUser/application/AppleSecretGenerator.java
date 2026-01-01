@@ -22,7 +22,7 @@ public class AppleSecretGenerator {
 
     private String keyId = "K73M5XWDJ7";
     private String teamId = "249JP946MX";
-    private String clientId = "com.positive.test.oauth2.test";
+    private String clientId = "com.motiolab.nabusi-ios";
 
     public String createClientSecret() {
         final ClassPathResource resource = new ClassPathResource("appleKey/AuthKey_K73M5XWDJ7.p8");
