@@ -23,6 +23,7 @@ public class FCMInitializer {
         try (InputStream serviceAccount = new ClassPathResource(firebaseFilePath).getInputStream()) {
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setProjectId("nabusi-f20e3")
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
