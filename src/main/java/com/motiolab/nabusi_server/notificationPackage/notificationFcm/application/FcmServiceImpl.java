@@ -1,18 +1,24 @@
 package com.motiolab.nabusi_server.notificationPackage.notificationFcm.application;
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
-public class FcmServiceImpl implements FcmService{
+public class FcmServiceImpl implements FcmService {
 
     @Override
     public void send(String token, String title, String body) {
         try {
+            log.info("📧 Attempting to send FCM message. Title: {}, Token (start): {}",
+                    title, token.substring(0, Math.min(token.length(), 10)) + "...");
+
             // 푸시 알림 생성
             Notification notification = Notification.builder()
                     .setTitle(title)
@@ -25,10 +31,13 @@ public class FcmServiceImpl implements FcmService{
                     .build();
 
             // FCM을 이용하여 메시지 전송
+            String appName = FirebaseApp.getInstance().getName();
+            log.info("🔗 Using Firebase App: {}", appName);
+
             String response = FirebaseMessaging.getInstance().send(message);
-            System.out.println("🔥 Successfully sent message: " + response);
+            log.info("✅ Successfully sent message. Response: {}", response);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("❌ Failed to send FCM message: {}", e.getMessage(), e);
         }
     }
 }
