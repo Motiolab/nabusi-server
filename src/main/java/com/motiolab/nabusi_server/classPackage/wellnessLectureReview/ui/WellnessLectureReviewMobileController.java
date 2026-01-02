@@ -58,17 +58,17 @@ public class WellnessLectureReviewMobileController {
         }
 
         @PostMapping("/v1/mobile/wellness-lecture-review/comment/create")
-        public ResponseEntity<Void> createComment(@MemberId Long memberId,
+        public ResponseEntity<Boolean> createComment(@MemberId Long memberId,
                         @RequestBody CreateWellnessLectureReviewCommentMobileRequest createWellnessLectureReviewCommentMobileRequest) {
                 wellnessLectureReviewMobileService.createComment(memberId,
                                 createWellnessLectureReviewCommentMobileRequest);
-                return ResponseEntity.ok().build();
+                return ResponseEntity.ok(true);
         }
 
         @PostMapping("/v1/mobile/wellness-lecture-review/comment/delete")
-        public ResponseEntity<Void> deleteComment(@MemberId Long memberId, @RequestBody DeleteWellnessLectureReviewCommentMobileRequest deleteWellnessLectureReviewCommentMobileRequest) {
+        public ResponseEntity<Boolean> deleteComment(@MemberId Long memberId, @RequestBody DeleteWellnessLectureReviewCommentMobileRequest deleteWellnessLectureReviewCommentMobileRequest) {
                 wellnessLectureReviewMobileService.deleteComment(memberId, deleteWellnessLectureReviewCommentMobileRequest);
-                return ResponseEntity.ok().build();
+                return ResponseEntity.ok(true);
         }
 
         @GetMapping("/v1/mobile/wellness-lecture-review/{type}/{id}")

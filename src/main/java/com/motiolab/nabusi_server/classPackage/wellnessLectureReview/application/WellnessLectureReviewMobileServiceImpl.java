@@ -29,6 +29,7 @@ import com.motiolab.nabusi_server.reservation.application.dto.ReservationDto;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.teacher.application.TeacherService;
 import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,7 @@ public class WellnessLectureReviewMobileServiceImpl implements WellnessLectureRe
         private final NotificationFcmAdminService notificationFcmAdminService;
         private final FcmNotificationHistoryService fcmNotificationHistoryService;
 
+        @Transactional
         @Override
         public void createWellnessLectureReview(Long memberId,
                         CreateWellnessLectureReviewMobileRequest createWellnessLectureReviewMobileRequest) {
