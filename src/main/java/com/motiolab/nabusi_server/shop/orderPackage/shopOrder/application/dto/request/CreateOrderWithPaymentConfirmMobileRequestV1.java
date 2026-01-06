@@ -1,7 +1,6 @@
 package com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request;
 
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.enums.ShopOrderStatus;
-
 import lombok.*;
 
 import java.util.List;

@@ -1,7 +1,6 @@
 package com.motiolab.nabusi_server.memberPackage.member.application;
 
 import com.motiolab.nabusi_server.classPackage.wellnessClass.application.WellnessClassService;
-import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.WellnessLectureService;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureReview.application.WellnessLectureReviewService;
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
 import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;

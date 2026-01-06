@@ -1,12 +1,9 @@
 package com.motiolab.nabusi_server.notificationPackage.notificationFcmHistory.application.dto;
 
 import com.motiolab.nabusi_server.notificationPackage.notificationFcmHistory.domain.FcmNotificationHistoryEntity;
-import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.data.annotation.CreatedDate;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 

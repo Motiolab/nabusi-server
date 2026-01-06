@@ -1,10 +1,10 @@
 package com.motiolab.nabusi_server.teacher.domain;
 
-import java.util.List;
-import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface TeacherRepository extends JpaRepository<TeacherEntity, Long> {
     @Query("SELECT t FROM TeacherEntity t JOIN MemberEntity m ON t.memberId = m.id WHERE t.id IN :idList AND m.isDelete = false")

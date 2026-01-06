@@ -1,10 +1,10 @@
 package com.motiolab.nabusi_server.shop.cartPackage.shopCart.application;
 
-import jakarta.transaction.Transactional;
 import com.motiolab.nabusi_server.shop.cartPackage.shopCart.application.dto.ShopCartDto;
 import com.motiolab.nabusi_server.shop.cartPackage.shopCart.domain.CartStatus;
 import com.motiolab.nabusi_server.shop.cartPackage.shopCart.domain.ShopCartEntity;
 import com.motiolab.nabusi_server.shop.cartPackage.shopCart.domain.ShopCartRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

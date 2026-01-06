@@ -3,11 +3,11 @@ package com.motiolab.nabusi_server.shop.productPackage.shopProduct.application;
 import com.motiolab.nabusi_server.shop.productPackage.shopProduct.application.dto.ShopProductDto;
 import com.motiolab.nabusi_server.shop.productPackage.shopProduct.domain.ShopProductEntity;
 import com.motiolab.nabusi_server.shop.productPackage.shopProduct.domain.ShopProductRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import jakarta.transaction.Transactional;
 
 @Service
 @RequiredArgsConstructor

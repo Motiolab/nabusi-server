@@ -1,7 +1,7 @@
 package com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto;
 
-import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.enums.ShopOrderStatus;
 import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.domain.ShopOrderEntity;
+import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.enums.ShopOrderStatus;
 import lombok.Builder;
 import lombok.Getter;
 

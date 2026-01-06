@@ -5,7 +5,6 @@ import com.motiolab.nabusi_server.memberPackage.memberPointHistory.domain.PointT
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 

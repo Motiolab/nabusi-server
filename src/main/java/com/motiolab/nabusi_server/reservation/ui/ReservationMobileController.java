@@ -5,9 +5,6 @@ import com.motiolab.nabusi_server.reservation.application.ReservationMobileServi
 import com.motiolab.nabusi_server.reservation.application.dto.request.*;
 import com.motiolab.nabusi_server.reservation.application.dto.response.*;
 import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
-import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.ShopOrderMobileDto;
-import com.motiolab.nabusi_server.shop.orderPackage.shopOrder.application.dto.request.CreateOrderWithPaymentConfirmMobileRequestV1;
-import com.motiolab.nabusi_server.reservation.application.dto.request.UpdateReservationStatusMobileRequestV1;
 import com.motiolab.nabusi_server.util.WellnessLectureReviewUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
