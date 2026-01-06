@@ -15,4 +15,8 @@ public class GetMemberMyInfoMobileResponse {
     private String socialName;
     private Long totalPoints;
     private Boolean isExistClass;
+    private String gender;
+    private String birthday;
+    private String birthYear;
+    private String phoneNumber;
 }

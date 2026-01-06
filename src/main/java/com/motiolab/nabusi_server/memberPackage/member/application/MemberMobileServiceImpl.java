@@ -22,14 +22,10 @@ import com.motiolab.nabusi_server.socialUser.naverUser.application.NaverUserMobi
 import com.motiolab.nabusi_server.socialUser.naverUser.application.NaverUserService;
 import com.motiolab.nabusi_server.socialUser.naverUser.application.dto.NaverUserDto;
 import com.motiolab.nabusi_server.teacher.application.TeacherService;
-import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -75,20 +71,47 @@ public class MemberMobileServiceImpl implements MemberMobileService {
             throw new NotFoundException(MemberDto.class, memberId);
         }
 
-        final MemberPointDto memberPointDto = memberPointService.getByMemberId(memberId);
-        final long totalPoints = memberPointDto != null ? memberPointDto.getPoint() : 0L;
-
-        final List<Long> teacherIds = wellnessClassService.getDistinctTeacherIds();
-        final List<TeacherDto> teacherDtoList = teacherService.getAllByIdList(teacherIds);
-        final List<Long> memberIdList = teacherDtoList.stream().map(TeacherDto::getMemberId).toList();
-
-        return GetMemberMyInfoMobileResponse.builder()
+        GetMemberMyInfoMobileResponse.GetMemberMyInfoMobileResponseBuilder builder = GetMemberMyInfoMobileResponse
+                .builder()
                 .memberName(memberDto.getName())
                 .memberEmail(memberDto.getEmail())
-                .socialName(memberDto.getSocialName())
-                .totalPoints(totalPoints)
-                .isExistClass(memberIdList.contains(memberId))
-                .build();
+                .socialName(memberDto.getSocialName());
+
+        // 소셜 정보 (Social Info) 채우기
+        switch (memberDto.getSocialName()) {
+            case "kakao" -> {
+                KakaoUserDto kakaoUserDto = kakaoUserService.getByMemberId(memberId);
+                builder.birthday(kakaoUserDto.getBirthDay())
+                        .birthYear(kakaoUserDto.getBirthYear())
+                        .gender(kakaoUserDto.getGender())
+                        .phoneNumber(kakaoUserDto.getPhoneNumber());
+            }
+            case "naver" -> {
+                NaverUserDto naverUserDto = naverUserService.getByMemberId(memberId);
+                builder.birthday(naverUserDto.getBirthday())
+                        .birthYear(naverUserDto.getBirthyear())
+                        .gender(naverUserDto.getGender())
+                        .phoneNumber(naverUserDto.getMobile());
+            }
+            case "apple" -> {
+                AppleUserDto appleUserDto = appleUserService.getByMemberId(memberId);
+                builder.phoneNumber(appleUserDto.getMobile());
+            }
+        }
+
+        // 포인트 정보
+        long totalPoints = Optional.ofNullable(memberPointService.getByMemberId(memberId))
+                .map(MemberPointDto::getPoint)
+                .orElse(0L);
+        builder.totalPoints(totalPoints);
+
+        // 강사 여부 확인 (최적화: 전체 강사가 아닌 해당 회원의 강사 정보만 매칭)
+        List<Long> teacherIdsWithClasses = wellnessClassService.getDistinctTeacherIds();
+        boolean isTeacherOfClass = teacherService.getAllByMemberId(memberId).stream()
+                .anyMatch(teacher -> teacherIdsWithClasses.contains(teacher.getId()));
+        builder.isExistClass(isTeacherOfClass);
+
+        return builder.build();
     }
 
     @Override
