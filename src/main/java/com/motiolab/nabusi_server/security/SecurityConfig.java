@@ -18,6 +18,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @RequiredArgsConstructor
@@ -29,6 +32,11 @@ public class SecurityConfig {
 
         @Value("${app.login.success-url:http://localhost:5173/login/success}")
         private String loginSuccessUrl;
+
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http,

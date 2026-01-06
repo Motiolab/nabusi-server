@@ -37,15 +37,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/v1/mobile/wellness-lecture-review/.*/.*", "/healthy/check", "/v1/mobile/auth/code",
             "/v1/verification/mobile/auth/code/.*", "/v1/mobile/apple-user/signup", "/favicon.ico", "/v1/mobile/member",
             "/v1/mobile/wellness-lecture/manage/date", "/v1/mobile/shop/.*",
-            "/v3/api-docs.*", "/swagger-ui.*", "/swagger-ui.html"); // 테스트 ngrok 사용시 추가
-                                                                    // "http://*.ngrok-free.app/login"
+            "/v3/api-docs.*", "/swagger-ui.*", "/swagger-ui.html", "/v1/mobile/admin-user/signup",
+            "/v1/mobile/admin-user/login"); // 테스트 ngrok 사용시 추가
+    // "http://*.ngrok-free.app/login"
     public static final List<String> PERMISSION_WHITELIST = List.of("/v1/mobile/cart/item", "/v1/mobile/cart/item/.*",
             "/v1/mobile/cart/list", "/v1/admin/member/address/.*", "/v1/admin/member/point",
             "/v1/mobile/toss-pay/create", "/v1/mobile/reservation/payment/confirm", "/v1/mobile/reservation/validate",
             "/v1/mobile/reservation/refund", "/v1/mobile/shop/order/cancel",
             "/v1/mobile/wellness-lecture-review/comment/create", "/v1/mobile/wellness-lecture-review/comment/delete",
             "/v1/mobile/member/home/summary", "/v1/mobile/fcm-notification-history/list", "/v1/mobile/member/my-info",
-            "/v1/mobile/member/point/history", "/v1/mobile/wellness-lecture/my/schedule", "/v1/mobile/wellness-lecture/my/list",
+            "/v1/mobile/member/point/history", "/v1/mobile/wellness-lecture/my/schedule",
+            "/v1/mobile/wellness-lecture/my/list",
             "/v1/mobile/reservation/update/status/teacher");
 
     @Override
