@@ -7,5 +7,8 @@ import java.util.List;
 
 public interface ReservationAdminService {
     void createReservation(CreateReservationAdminRequestV1 createReservationAdminRequestV1);
+
     List<ReservationAdminDto> getReservationListByWellnessLectureId(Long wellnessLectureId);
+
+    void cancelReservation(Long reservationId, Long actionMemberId);
 }

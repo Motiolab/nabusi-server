@@ -3,6 +3,8 @@ package com.motiolab.nabusi_server.teacher.application;
 import com.motiolab.nabusi_server.exception.customException.DeletedAlreadyException;
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
 import com.motiolab.nabusi_server.exception.customException.RestoredAlreadyException;
+import com.motiolab.nabusi_server.memberPackage.member.application.MemberService;
+import com.motiolab.nabusi_server.memberPackage.member.application.dto.MemberDto;
 import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
 import com.motiolab.nabusi_server.teacher.domain.TeacherEntity;
 import com.motiolab.nabusi_server.teacher.domain.TeacherRepository;
@@ -17,10 +19,11 @@ import java.util.List;
 public class TeacherServiceImpl implements TeacherService {
 
     private final TeacherRepository teacherRepository;
+    private final MemberService memberService;
 
     @Override
     public List<TeacherDto> getAllByIdList(List<Long> idList) {
-        return teacherRepository.findAllByIdIn(idList)
+        return teacherRepository.findAllByIdInAndMemberIsDeleteFalse(idList)
                 .stream()
                 .map(TeacherDto::from)
                 .toList();
@@ -53,14 +56,21 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public List<TeacherDto> getAllByCenterId(Long centerId) {
-        final List<TeacherEntity> teacherEntityList = teacherRepository.findAllByCenterId(centerId);
+        final List<TeacherEntity> teacherEntityList = teacherRepository
+                .findAllByCenterIdAndMemberIsDeleteFalse(centerId);
         return teacherEntityList.stream().map(TeacherDto::from).toList();
     }
 
     @Override
     public TeacherDto getById(Long id) {
         return teacherRepository.findById(id)
-                .map(TeacherDto::from)
+                .map(TeacherEntity::getMemberId)
+                .map(memberService::getById)
+                .map(memberDto -> {
+                    if (memberDto.getIsDelete())
+                        return null;
+                    return teacherRepository.findById(id).map(TeacherDto::from).orElse(null);
+                })
                 .orElse(null);
     }
 
@@ -109,6 +119,10 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public List<TeacherDto> getAllByMemberId(Long memberId) {
+        final MemberDto memberDto = memberService.getById(memberId);
+        if (memberDto == null || memberDto.getIsDelete()) {
+            return List.of();
+        }
         final List<TeacherEntity> teacherEntityList = teacherRepository.findAllByMemberId(memberId);
         return teacherEntityList.stream().map(TeacherDto::from).toList();
     }

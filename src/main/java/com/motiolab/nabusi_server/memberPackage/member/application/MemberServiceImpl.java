@@ -22,15 +22,17 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberDto create(@NonNull final MemberDto memberDto) {
-        final List<RoleEntity> roleEntityList = roleRepository.findAllByIdIn(memberDto.getRoleList().stream().map(RoleDto::getId).toList());
-        final MemberEntity newMemberEntity = MemberEntity.create(memberDto.getName(), memberDto.getEmail(), memberDto.getMobile(), memberDto.getSocialName(), roleEntityList, memberDto.getCenterIdList());
+        final List<RoleEntity> roleEntityList = roleRepository
+                .findAllByIdIn(memberDto.getRoleList().stream().map(RoleDto::getId).toList());
+        final MemberEntity newMemberEntity = MemberEntity.create(memberDto.getName(), memberDto.getEmail(),
+                memberDto.getMobile(), memberDto.getSocialName(), roleEntityList, memberDto.getCenterIdList());
         final MemberEntity savedMemberEntity = memberRepository.save(newMemberEntity);
         return MemberDto.from(savedMemberEntity);
     }
 
     @Override
     public List<MemberDto> getAll() {
-        List<MemberEntity> memberEntities = memberRepository.findAll();
+        List<MemberEntity> memberEntities = memberRepository.findAllByIsDeleteFalse();
 
         return memberEntities.stream()
                 .map(MemberDto::from)
@@ -39,12 +41,16 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberDto getById(@NonNull final Long id) {
-        return memberRepository.findById(id).map(MemberDto::from).orElse(null);
+        return memberRepository.findById(id)
+                .filter(memberEntity -> !memberEntity.getIsDelete())
+                .map(MemberDto::from)
+                .orElse(null);
     }
 
     @Override
     public MemberDto getByMobileAndSocialName(final @NonNull String mobile, final @NonNull String socialName) {
-        return memberRepository.findByMobileAndSocialName(mobile, socialName).map(MemberDto::from).orElse(null);
+        return memberRepository.findByMobileAndSocialNameAndIsDeleteFalse(mobile, socialName).map(MemberDto::from)
+                .orElse(null);
     }
 
     @Override
@@ -66,7 +72,8 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     @Override
     public MemberDto addCenterId(Long memberId, Long centerId) {
-        final MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new RuntimeException("Member not found."));
+        final MemberEntity memberEntity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Member not found."));
 
         final List<Long> centerIdList = new ArrayList<>(memberEntity.getCenterIdList());
         centerIdList.add(centerId);
@@ -83,11 +90,12 @@ public class MemberServiceImpl implements MemberService {
                 .toList();
     }
 
-
     @Override
     public void addRoleListByNameAndCenterId(@NonNull Long memberId, @NonNull Long roleId, @NonNull Long centerId) {
-        final MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new RuntimeException("Member not found."));
-        final RoleEntity roleEntity = roleRepository.findById(roleId).orElseThrow(() -> new RuntimeException("Role not found."));
+        final MemberEntity memberEntity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Member not found."));
+        final RoleEntity roleEntity = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found."));
         final List<RoleEntity> roleEntityList = new ArrayList<>(memberEntity.getRoles());
         roleEntityList.add(roleEntity);
         memberEntity.updateRoleList(roleEntityList);
@@ -105,19 +113,29 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public List<MemberDto> getAllByIdList(List<Long> idList) {
-        final List<MemberEntity> memberEntityList = memberRepository.findAllById(idList);
+        final List<MemberEntity> memberEntityList = memberRepository.findAllByIdInAndIsDeleteFalse(idList);
         return memberEntityList.stream().map(MemberDto::from).toList();
     }
+
     @Override
     public List<MemberDto> getAllByRolesId(Long roleId) {
-        final List<MemberEntity> memberEntityList = memberRepository.findAllByRolesId(roleId);
+        final List<MemberEntity> memberEntityList = memberRepository.findAllByRolesIdAndIsDeleteFalse(roleId);
         return memberEntityList.stream().map(MemberDto::from).toList();
     }
 
     @Override
     public void updateMobile(@NonNull Long memberId, @NonNull String mobile) {
-        final MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new RuntimeException("Member not found."));
+        final MemberEntity memberEntity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Member not found."));
         memberEntity.updateMobile(mobile);
+        memberRepository.save(memberEntity);
+    }
+
+    @Override
+    public void delete(Long memberId) {
+        final MemberEntity memberEntity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Member not found."));
+        memberEntity.delete();
         memberRepository.save(memberEntity);
     }
 }

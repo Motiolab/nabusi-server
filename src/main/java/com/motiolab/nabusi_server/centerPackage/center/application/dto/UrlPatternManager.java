@@ -73,6 +73,7 @@ public class UrlPatternManager {
 
         urlPatternDtoList.add(UrlPatternDto.create("RESERVATION_MANAGE", "/v1/admin/reservation/create/{centerId}", "POST", "수업 예약 생성", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("RESERVATION_MANAGE", "/v1/admin/reservation/list/{centerId}", "GET", "수업 예약 리스트 조회", centerId));
+        urlPatternDtoList.add(UrlPatternDto.create("RESERVATION_MANAGE", "/v1/admin/reservation/cancel/{centerId}", "PUT", "수업 예약 취소", centerId));
 
         urlPatternDtoList.add(UrlPatternDto.create("CENTER_INFO_VIEW", "/v1/admin/center/info/{centerId}", "GET", "센터 정보 조회", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("CENTER_INFO_MANAGE", "/v1/admin/center/info/{centerId}", "PUT", "센터 정보 수정", centerId));

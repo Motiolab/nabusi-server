@@ -23,7 +23,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class WellnessLectureAdminServiceImpl implements WellnessLectureAdminService{
+public class WellnessLectureAdminServiceImpl implements WellnessLectureAdminService {
     private final WellnessLectureService wellnessLectureService;
     private final WellnessClassService wellnessClassService;
     private final CalcZoneDateTime calcZoneDateTime;
@@ -33,7 +33,8 @@ public class WellnessLectureAdminServiceImpl implements WellnessLectureAdminServ
     private final WellnessTicketService wellnessTicketService;
 
     @Override
-    public void createWellnessLectureListWithWellnessClass(CreateWellnessLectureListWithWellnessClassAdminRequestV1 createWellnessLectureListWithWellnessClassAdminRequestV1) {
+    public void createWellnessLectureListWithWellnessClass(
+            CreateWellnessLectureListWithWellnessClassAdminRequestV1 createWellnessLectureListWithWellnessClassAdminRequestV1) {
         final WellnessClassDto wellnessClassDto = WellnessClassDto.builder()
                 .id(createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessClassId())
                 .description(createWellnessLectureListWithWellnessClassAdminRequestV1.getDescription())
@@ -43,9 +44,11 @@ public class WellnessLectureAdminServiceImpl implements WellnessLectureAdminServ
                 .room(createWellnessLectureListWithWellnessClassAdminRequestV1.getRoom())
                 .classImageUrlList(createWellnessLectureListWithWellnessClassAdminRequestV1.getClassImageUrlList())
                 .teacherId(createWellnessLectureListWithWellnessClassAdminRequestV1.getTeacherId())
-                .wellnessLectureTypeId(createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessLectureTypeId())
+                .wellnessLectureTypeId(
+                        createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessLectureTypeId())
                 .isDelete(false)
-                .wellnessTicketManagementIdList(createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessTicketManagementIdList())
+                .wellnessTicketManagementIdList(
+                        createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessTicketManagementIdList())
                 .build();
 
         final Boolean isSuccessUpdate = wellnessClassService.update(wellnessClassDto);
@@ -55,78 +58,112 @@ public class WellnessLectureAdminServiceImpl implements WellnessLectureAdminServ
             wellnessClassService.create(wellnessClassDto);
         }
 
-        final List<TimeWithDay> timeWithDayList = createWellnessLectureListWithWellnessClassAdminRequestV1.getTimeRangeWithDays().stream().map(timeRangeWithDay -> TimeWithDay.builder().startTime(timeRangeWithDay.getStartTime()).endTime(timeRangeWithDay.getEndTime()).dayOfWeek(timeRangeWithDay.getDayOfWeek()).build()).toList();
-        final RangeZoneDateTime rangeZoneDateTime = RangeZoneDateTime.builder().startDateTime(createWellnessLectureListWithWellnessClassAdminRequestV1.getStartDateTime()).endDateTime(createWellnessLectureListWithWellnessClassAdminRequestV1.getEndDateTime()).build();
-        final List<CalcZoneDateTimeListResponse> calcDateListResponseList = calcZoneDateTime.getByRangeDate(rangeZoneDateTime, timeWithDayList);
+        final List<TimeWithDay> timeWithDayList = createWellnessLectureListWithWellnessClassAdminRequestV1
+                .getTimeRangeWithDays().stream()
+                .map(timeRangeWithDay -> TimeWithDay.builder().startTime(timeRangeWithDay.getStartTime())
+                        .endTime(timeRangeWithDay.getEndTime()).dayOfWeek(timeRangeWithDay.getDayOfWeek()).build())
+                .toList();
+        final RangeZoneDateTime rangeZoneDateTime = RangeZoneDateTime.builder()
+                .startDateTime(createWellnessLectureListWithWellnessClassAdminRequestV1.getStartDateTime())
+                .endDateTime(createWellnessLectureListWithWellnessClassAdminRequestV1.getEndDateTime()).build();
+        final List<CalcZoneDateTimeListResponse> calcDateListResponseList = calcZoneDateTime
+                .getByRangeDate(rangeZoneDateTime, timeWithDayList);
 
-        final List<WellnessLectureDto> wellnessLectureEntityList = calcDateListResponseList.stream().map(calcDateListResponse -> WellnessLectureDto.builder()
-                .name(createWellnessLectureListWithWellnessClassAdminRequestV1.getName())
-                .description(createWellnessLectureListWithWellnessClassAdminRequestV1.getDescription())
-                .centerId(createWellnessLectureListWithWellnessClassAdminRequestV1.getCenterId())
-                .maxReservationCnt(createWellnessLectureListWithWellnessClassAdminRequestV1.getMaxReservationCnt())
-                .registerId(createWellnessLectureListWithWellnessClassAdminRequestV1.getRegistrantId())
-                .room(createWellnessLectureListWithWellnessClassAdminRequestV1.getRoom())
-                .lectureImageUrlList(createWellnessLectureListWithWellnessClassAdminRequestV1.getClassImageUrlList())
-                .price(createWellnessLectureListWithWellnessClassAdminRequestV1.getPrice())
-                .wellnessClassId(createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessClassId())
-                .teacherId(createWellnessLectureListWithWellnessClassAdminRequestV1.getTeacherId())
-                .wellnessLectureTypeId(createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessLectureTypeId())
-                .startDateTime(calcDateListResponse.getStartDateTime())
-                .endDateTime(calcDateListResponse.getEndDateTime())
-                .isDelete(false)
-                .wellnessTicketManagementIdList(createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessTicketManagementIdList())
-                .build()).toList();
+        final List<WellnessLectureDto> wellnessLectureEntityList = calcDateListResponseList.stream()
+                .map(calcDateListResponse -> WellnessLectureDto.builder()
+                        .name(createWellnessLectureListWithWellnessClassAdminRequestV1.getName())
+                        .description(createWellnessLectureListWithWellnessClassAdminRequestV1.getDescription())
+                        .centerId(createWellnessLectureListWithWellnessClassAdminRequestV1.getCenterId())
+                        .maxReservationCnt(
+                                createWellnessLectureListWithWellnessClassAdminRequestV1.getMaxReservationCnt())
+                        .registerId(createWellnessLectureListWithWellnessClassAdminRequestV1.getRegistrantId())
+                        .room(createWellnessLectureListWithWellnessClassAdminRequestV1.getRoom())
+                        .lectureImageUrlList(
+                                createWellnessLectureListWithWellnessClassAdminRequestV1.getClassImageUrlList())
+                        .price(createWellnessLectureListWithWellnessClassAdminRequestV1.getPrice())
+                        .wellnessClassId(createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessClassId())
+                        .teacherId(createWellnessLectureListWithWellnessClassAdminRequestV1.getTeacherId())
+                        .wellnessLectureTypeId(
+                                createWellnessLectureListWithWellnessClassAdminRequestV1.getWellnessLectureTypeId())
+                        .startDateTime(calcDateListResponse.getStartDateTime())
+                        .endDateTime(calcDateListResponse.getEndDateTime())
+                        .isDelete(false)
+                        .wellnessTicketManagementIdList(createWellnessLectureListWithWellnessClassAdminRequestV1
+                                .getWellnessTicketManagementIdList())
+                        .build())
+                .toList();
 
         wellnessLectureService.createAll(wellnessLectureEntityList);
     }
 
     @Override
-    public List<WellnessLectureAdminDto> getWellnessLectureListByStartDate(ZonedDateTime startDate) {
+    public List<WellnessLectureAdminDto> getWellnessLectureListByStartDate(Long centerId, ZonedDateTime startDate) {
         final ZonedDateTime startDateTime = startDate.with(LocalTime.MIN);
         final ZonedDateTime endDateTime = startDate.with(LocalTime.MAX);
 
-        final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService.getWellnessLectureByDateRange(startDateTime, endDateTime);
+        final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService
+                .getAllByCenterIdAndStartDateTimeBetweenAndIsDeleteFalse(centerId, startDateTime, endDateTime);
 
-        final List<Long> teacherIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getTeacherId).distinct().toList();
+        final List<Long> teacherIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getTeacherId)
+                .distinct().toList();
         final List<TeacherDto> teacherDtoList = teacherService.getAllByIdList(teacherIdList);
 
-        final List<Long> wellnessLectureTypeIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getWellnessLectureTypeId).distinct().toList();
-        final List<WellnessLectureTypeDto> wellnessLectureTypeDtoList =wellnessLectureTypeService.getAllByIdList(wellnessLectureTypeIdList);
+        final List<Long> wellnessLectureTypeIdList = wellnessLectureDtoList.stream()
+                .map(WellnessLectureDto::getWellnessLectureTypeId).distinct().toList();
+        final List<WellnessLectureTypeDto> wellnessLectureTypeDtoList = wellnessLectureTypeService
+                .getAllByIdList(wellnessLectureTypeIdList);
 
         return wellnessLectureDtoList.stream().map(wellnessLectureDto -> WellnessLectureAdminDto.builder()
-                        .wellnessLectureDto(wellnessLectureDto)
-                        .teacherDto(teacherDtoList.stream().filter(teacherDto -> teacherDto.getId().equals(wellnessLectureDto.getTeacherId())).findFirst().orElseThrow(() -> new RuntimeException("Error: Teacher is not found. id: " + wellnessLectureDto.getTeacherId())))
-                        .wellnessLectureTypeDto(wellnessLectureTypeDtoList.stream().filter(wellnessLectureTypeDto -> wellnessLectureTypeDto.id().equals(wellnessLectureDto.getWellnessLectureTypeId())).findFirst().orElseThrow(() -> new RuntimeException("Error: WellnessLectureType is not found. id: " + wellnessLectureDto.getWellnessLectureTypeId())))
-                        .build())
+                .wellnessLectureDto(wellnessLectureDto)
+                .teacherDto(teacherDtoList.stream()
+                        .filter(teacherDto -> teacherDto.getId().equals(wellnessLectureDto.getTeacherId())).findFirst()
+                        .orElseThrow(() -> new RuntimeException(
+                                "Error: Teacher is not found. id: " + wellnessLectureDto.getTeacherId())))
+                .wellnessLectureTypeDto(wellnessLectureTypeDtoList.stream()
+                        .filter(wellnessLectureTypeDto -> wellnessLectureTypeDto.id()
+                                .equals(wellnessLectureDto.getWellnessLectureTypeId()))
+                        .findFirst()
+                        .orElseThrow(() -> new RuntimeException("Error: WellnessLectureType is not found. id: "
+                                + wellnessLectureDto.getWellnessLectureTypeId())))
+                .build())
                 .toList();
     }
 
     @Override
     public WellnessLectureAdminDto getWellnessLectureDetailById(Long id) {
         final WellnessLectureDto wellnessLectureDto = wellnessLectureService.getById(id);
-        if(wellnessLectureDto == null) {
+        if (wellnessLectureDto == null) {
             throw new NotFoundException(WellnessLectureDto.class, id);
         }
 
         final TeacherDto teacherDto = teacherService.getById(wellnessLectureDto.getTeacherId());
-        if(teacherDto == null) {
+        if (teacherDto == null) {
             throw new NotFoundException(TeacherDto.class, wellnessLectureDto.getTeacherId());
         }
 
-        final WellnessLectureTypeDto wellnessLectureTypeDto = wellnessLectureTypeService.getById(wellnessLectureDto.getWellnessLectureTypeId());
-        if(wellnessLectureTypeDto == null) {
+        final WellnessLectureTypeDto wellnessLectureTypeDto = wellnessLectureTypeService
+                .getById(wellnessLectureDto.getWellnessLectureTypeId());
+        if (wellnessLectureTypeDto == null) {
             throw new NotFoundException(WellnessLectureTypeDto.class, wellnessLectureDto.getWellnessLectureTypeId());
         }
 
-        final List<WellnessTicketManagementDto> wellnessTicketManagementDtoList = wellnessTicketManagementService.getAllByIdList(wellnessLectureDto.getWellnessTicketManagementIdList());
-        final List<Long> wellnessTicketIdList = wellnessTicketManagementDtoList.stream().map(WellnessTicketManagementDto::getWellnessTicketId).distinct().toList();
+        final List<WellnessTicketManagementDto> wellnessTicketManagementDtoList = wellnessTicketManagementService
+                .getAllByIdList(wellnessLectureDto.getWellnessTicketManagementIdList());
+        final List<Long> wellnessTicketIdList = wellnessTicketManagementDtoList.stream()
+                .map(WellnessTicketManagementDto::getWellnessTicketId).distinct().toList();
         final List<WellnessTicketDto> wellnessTicketDtoList = wellnessTicketService.getAllById(wellnessTicketIdList);
 
         final List<WellnessLectureAdminDto.WellnessTicketExtension> wellnessTicketExtensionList = wellnessTicketManagementDtoList
                 .stream()
                 .map(wellnessTicketManagementDto -> WellnessLectureAdminDto.WellnessTicketExtension.builder()
                         .wellnessTicketManagementDto(wellnessTicketManagementDto)
-                        .wellnessTicketDto(wellnessTicketDtoList.stream().filter(wellnessTicketDto -> wellnessTicketDto.getId().equals(wellnessTicketManagementDto.getWellnessTicketId())).findFirst().orElseThrow(() -> new NotFoundException(WellnessTicketDto.class, wellnessTicketManagementDto.getWellnessTicketId())))
+                        .wellnessTicketDto(
+                                wellnessTicketDtoList.stream()
+                                        .filter(wellnessTicketDto -> wellnessTicketDto
+                                                .getId().equals(wellnessTicketManagementDto.getWellnessTicketId()))
+                                        .findFirst()
+                                        .orElseThrow(() -> new NotFoundException(WellnessTicketDto.class,
+                                                wellnessTicketManagementDto.getWellnessTicketId())))
                         .build())
                 .toList();
 
@@ -141,9 +178,9 @@ public class WellnessLectureAdminServiceImpl implements WellnessLectureAdminServ
     @Override
     public void deleteWellnessLectureById(Long id, Boolean isSendNoti) {
         wellnessLectureService.delete(id);
-        //TODO
-        //예약된 정보 삭제
-        //알림 전송하기
+        // TODO
+        // 예약된 정보 삭제
+        // 알림 전송하기
     }
 
     @Override

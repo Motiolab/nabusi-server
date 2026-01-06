@@ -13,13 +13,8 @@ import java.util.List;
 
 @Entity
 @Getter
-@Table(
-        name = "member",
-        uniqueConstraints = @UniqueConstraint(
-                name = "UK_mobile_social_name",
-                columnNames = {"mobile", "socialName"}
-        )
-)
+@Table(name = "member", uniqueConstraints = @UniqueConstraint(name = "UK_mobile_social_name", columnNames = { "mobile",
+        "socialName" }))
 @Builder(access = AccessLevel.PRIVATE)
 @Setter(value = AccessLevel.PRIVATE)
 @EntityListeners(AuditingEntityListener.class)
@@ -36,14 +31,12 @@ public class MemberEntity {
     private String socialName;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "member_role",
-            joinColumns = @JoinColumn(name = "member_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "member_role", joinColumns = @JoinColumn(name = "member_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<RoleEntity> roles;
     @Convert(converter = ListToLongConverter.class)
     private List<Long> centerIdList;
+    @Builder.Default
+    private Boolean isDelete = false;
 
     @LastModifiedDate
     private LocalDateTime lastUpdatedDate;
@@ -51,7 +44,8 @@ public class MemberEntity {
     @Column(updatable = false)
     private LocalDateTime createdDate;
 
-    public static MemberEntity create(String name, String email, String mobile, String socialName, List<RoleEntity> roles, List<Long> centerIdList) {
+    public static MemberEntity create(String name, String email, String mobile, String socialName,
+            List<RoleEntity> roles, List<Long> centerIdList) {
         return MemberEntity.builder()
                 .name(name)
                 .email(email)
@@ -59,6 +53,7 @@ public class MemberEntity {
                 .socialName(socialName)
                 .roles(roles)
                 .centerIdList(centerIdList)
+                .isDelete(false)
                 .build();
     }
 
@@ -72,5 +67,9 @@ public class MemberEntity {
 
     public void updateMobile(String mobile) {
         setMobile(mobile);
+    }
+
+    public void delete() {
+        setIsDelete(true);
     }
 }

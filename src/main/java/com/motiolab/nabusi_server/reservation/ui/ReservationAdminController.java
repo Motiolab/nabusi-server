@@ -18,7 +18,8 @@ public class ReservationAdminController {
     private final ReservationAdminService reservationAdminService;
 
     @PostMapping("/v1/admin/reservation/create/{centerId}")
-    public ResponseEntity<Boolean> createReservation(@MemberId Long memberId, @PathVariable Long centerId, @RequestBody CreateReservationAdminRequestV1 createReservationAdminRequestV1) {
+    public ResponseEntity<Boolean> createReservation(@MemberId Long memberId, @PathVariable Long centerId,
+            @RequestBody CreateReservationAdminRequestV1 createReservationAdminRequestV1) {
         createReservationAdminRequestV1.setActionMemberId(memberId);
         createReservationAdminRequestV1.setCenterId(centerId);
         createReservationAdminRequestV1.setStatus(ReservationStatus.ADMIN_RESERVATION);
@@ -27,25 +28,45 @@ public class ReservationAdminController {
     }
 
     @GetMapping("/v1/admin/reservation/list/{centerId}")
-    public ResponseEntity<List<GetReservationListByWellnessLectureIdAdminResponseV1>> getReservationListByWellnessLectureId(@PathVariable Long centerId, @RequestParam(defaultValue = "wellnessLectureId") Long wellnessLectureId) {
-        final List<ReservationAdminDto> reservationAdminDtoList = reservationAdminService.getReservationListByWellnessLectureId(wellnessLectureId);
-        final List<GetReservationListByWellnessLectureIdAdminResponseV1> reservationListByWellnessLectureIdAdminResponseV1List =  reservationAdminDtoList
+    public ResponseEntity<List<GetReservationListByWellnessLectureIdAdminResponseV1>> getReservationListByWellnessLectureId(
+            @PathVariable Long centerId, @RequestParam(defaultValue = "wellnessLectureId") Long wellnessLectureId) {
+        final List<ReservationAdminDto> reservationAdminDtoList = reservationAdminService
+                .getReservationListByWellnessLectureId(wellnessLectureId);
+        final List<GetReservationListByWellnessLectureIdAdminResponseV1> reservationListByWellnessLectureIdAdminResponseV1List = reservationAdminDtoList
                 .stream()
                 .map(reservationAdminDto -> GetReservationListByWellnessLectureIdAdminResponseV1.builder()
                         .reservationId(reservationAdminDto.getReservationDto().getId())
                         .memberId(reservationAdminDto.getMemberExtension().getMemberDto().getId())
                         .memberName(reservationAdminDto.getMemberExtension().getMemberDto().getName())
                         .memberMobile(reservationAdminDto.getMemberExtension().getMemberDto().getMobile())
-                        .memberMemo(reservationAdminDto.getMemberExtension().getMemberMemoDto() != null ? reservationAdminDto.getMemberExtension().getMemberMemoDto().getContent() : "")
-                        .wellnessTicketIssuanceName(reservationAdminDto.getWellnessTicketIssuanceDto() != null ? reservationAdminDto.getWellnessTicketIssuanceDto().getName(): "")
-                        .wellnessTicketIssuanceBackgroundColor(reservationAdminDto.getWellnessTicketIssuanceDto() != null ? reservationAdminDto.getWellnessTicketIssuanceDto().getBackgroundColor(): "")
-                        .wellnessTicketIssuanceType(reservationAdminDto.getWellnessTicketIssuanceDto() != null ? reservationAdminDto.getWellnessTicketIssuanceDto().getType(): "")
-                        .wellnessTicketIssuanceTextColor(reservationAdminDto.getWellnessTicketIssuanceDto() != null ? reservationAdminDto.getWellnessTicketIssuanceDto().getTextColor(): "")
+                        .memberMemo(reservationAdminDto.getMemberExtension().getMemberMemoDto() != null
+                                ? reservationAdminDto.getMemberExtension().getMemberMemoDto().getContent()
+                                : "")
+                        .wellnessTicketIssuanceName(reservationAdminDto.getWellnessTicketIssuanceDto() != null
+                                ? reservationAdminDto.getWellnessTicketIssuanceDto().getName()
+                                : "")
+                        .wellnessTicketIssuanceBackgroundColor(
+                                reservationAdminDto.getWellnessTicketIssuanceDto() != null
+                                        ? reservationAdminDto.getWellnessTicketIssuanceDto().getBackgroundColor()
+                                        : "")
+                        .wellnessTicketIssuanceType(reservationAdminDto.getWellnessTicketIssuanceDto() != null
+                                ? reservationAdminDto.getWellnessTicketIssuanceDto().getType()
+                                : "")
+                        .wellnessTicketIssuanceTextColor(reservationAdminDto.getWellnessTicketIssuanceDto() != null
+                                ? reservationAdminDto.getWellnessTicketIssuanceDto().getTextColor()
+                                : "")
                         .reservationStatus(reservationAdminDto.getReservationDto().getStatus())
                         .reservationCreatedDate(reservationAdminDto.getReservationDto().getCreatedDate())
-                        .build()
-                ).toList();
+                        .build())
+                .toList();
 
         return ResponseEntity.ok(reservationListByWellnessLectureIdAdminResponseV1List);
+    }
+
+    @PutMapping("/v1/admin/reservation/cancel/{centerId}")
+    public ResponseEntity<Boolean> cancelReservation(@MemberId Long memberId, @PathVariable Long centerId,
+            @RequestParam(defaultValue = "reservationId") Long reservationId) {
+        reservationAdminService.cancelReservation(reservationId, memberId);
+        return ResponseEntity.ok(true);
     }
 }

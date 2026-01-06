@@ -22,6 +22,7 @@ public class MemberDto {
     private List<Long> centerIdList;
     private List<RoleDto> roleList;
     private ZonedDateTime createdDate;
+    private Boolean isDelete;
 
     public static MemberDto from(MemberEntity memberEntity) {
         return MemberDto.builder()
@@ -33,6 +34,7 @@ public class MemberDto {
                 .centerIdList(memberEntity.getCenterIdList())
                 .roleList(memberEntity.getRoles().stream().map(RoleDto::from).toList())
                 .createdDate(memberEntity.getCreatedDate().atZone(ZoneId.of("UTC")))
+                .isDelete(memberEntity.getIsDelete())
                 .build();
     }
 }

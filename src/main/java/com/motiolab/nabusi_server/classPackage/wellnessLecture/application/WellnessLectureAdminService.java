@@ -8,10 +8,16 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface WellnessLectureAdminService {
-    void createWellnessLectureListWithWellnessClass(CreateWellnessLectureListWithWellnessClassAdminRequestV1 createWellnessLectureListWithWellnessClassAdminRequestV1);
-    List<WellnessLectureAdminDto> getWellnessLectureListByStartDate(ZonedDateTime startDateTime);
+    void createWellnessLectureListWithWellnessClass(
+            CreateWellnessLectureListWithWellnessClassAdminRequestV1 createWellnessLectureListWithWellnessClassAdminRequestV1);
+
+    List<WellnessLectureAdminDto> getWellnessLectureListByStartDate(Long centerId, ZonedDateTime startDateTime);
+
     WellnessLectureAdminDto getWellnessLectureDetailById(Long id);
+
     void deleteWellnessLectureById(Long id, Boolean isSendNoti);
+
     void restoreWellnessLectureById(Long id);
+
     void updateWellnessLecture(UpdateWellnessLectureAdminRequestV1 updateWellnessLectureAdminRequestV1);
 }

@@ -75,6 +75,7 @@ jobs:
                --name nabusi-server \
                -p 8080:8080 \
                --restart unless-stopped \
+               -v /home/ubuntu/nabusi-logs:/app/logs \
                -e TZ=Asia/Seoul \
                -e SPRING_PROFILES_ACTIVE=prod \
                -e DB_URL='${{ secrets.DB_URL }}' \

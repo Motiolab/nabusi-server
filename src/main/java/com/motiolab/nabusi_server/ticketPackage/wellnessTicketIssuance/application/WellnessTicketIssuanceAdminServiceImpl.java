@@ -32,7 +32,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIssuanceAdminService{
+public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIssuanceAdminService {
     private final WellnessTicketIssuanceService wellnessTicketIssuanceService;
     private final WellnessTicketExtensionService wellnessTicketExtensionService;
     private final WellnessTicketService wellnessTicketService;
@@ -44,7 +44,8 @@ public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIss
 
     @Transactional
     @Override
-    public void createWellnessTicketIssuance(CreateWellnessTicketIssuanceAdminRequestV1 createWellnessTicketIssuanceAdminRequestV1) {
+    public void createWellnessTicketIssuance(
+            CreateWellnessTicketIssuanceAdminRequestV1 createWellnessTicketIssuanceAdminRequestV1) {
         PaymentDto paymentDto = PaymentDto.builder()
                 .memberId(createWellnessTicketIssuanceAdminRequestV1.getMemberId())
                 .status(PaymentStatusEnum.UNPAID)
@@ -69,17 +70,20 @@ public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIss
                 .build();
         OnSitePayDto savedOnSitePayDto = onSitePayService.create(onSitePayDto);
 
-//        savedPaymentDto.setStatus(PaymentStatusEnum.COMPLETE);
+        // savedPaymentDto.setStatus(PaymentStatusEnum.COMPLETE);
         savedPaymentDto.setOnSitePayId(savedOnSitePayDto.getId());
         PaymentDto updatedPaymentDto = paymentService.update(savedPaymentDto);
 
+        final List<WellnessTicketExtensionDto> wellnessTicketExtensionDtoList = wellnessTicketExtensionService
+                .getAllByWellnessTicketId(createWellnessTicketIssuanceAdminRequestV1.getWellnessTicketId());
+        final ZonedDateTime expireDate = calcExprieDate(createWellnessTicketIssuanceAdminRequestV1,
+                wellnessTicketExtensionDtoList);
 
-        final List<WellnessTicketExtensionDto> wellnessTicketExtensionDtoList = wellnessTicketExtensionService.getAllByWellnessTicketId(createWellnessTicketIssuanceAdminRequestV1.getWellnessTicketId());
-        final ZonedDateTime expireDate = calcExprieDate(createWellnessTicketIssuanceAdminRequestV1, wellnessTicketExtensionDtoList);
-
-        final WellnessTicketDto wellnessTicketDto = wellnessTicketService.getById(createWellnessTicketIssuanceAdminRequestV1.getWellnessTicketId());
-        if(wellnessTicketDto == null) {
-            throw new NotFoundException(WellnessTicketDto.class, createWellnessTicketIssuanceAdminRequestV1.getWellnessTicketId());
+        final WellnessTicketDto wellnessTicketDto = wellnessTicketService
+                .getById(createWellnessTicketIssuanceAdminRequestV1.getWellnessTicketId());
+        if (wellnessTicketDto == null) {
+            throw new NotFoundException(WellnessTicketDto.class,
+                    createWellnessTicketIssuanceAdminRequestV1.getWellnessTicketId());
         }
 
         final WellnessTicketIssuanceDto wellnessTicketIssuanceDto = WellnessTicketIssuanceDto.builder()
@@ -104,15 +108,21 @@ public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIss
                 .unpaidValue(createWellnessTicketIssuanceAdminRequestV1.getUnpaidValue())
                 .build();
 
-        final WellnessTicketIssuanceDto savedWellnessTicketIssuanceDto =  wellnessTicketIssuanceService.create(wellnessTicketIssuanceDto);
+        final WellnessTicketIssuanceDto savedWellnessTicketIssuanceDto = wellnessTicketIssuanceService
+                .create(wellnessTicketIssuanceDto);
 
-        final WellnessTicketManagementDto wellnessTicketManagementDto = wellnessTicketManagementService.getByCenterIdAndWellnessTicketIdAndWellnessTicketIssuanceName(createWellnessTicketIssuanceAdminRequestV1.getCenterId(), savedWellnessTicketIssuanceDto.getWellnessTicketId(), savedWellnessTicketIssuanceDto.getName());
-        final List<Long> wellnessTicketIssuanceIdList = new ArrayList<>(wellnessTicketManagementDto.getWellnessTicketIssuanceIdList());
+        final WellnessTicketManagementDto wellnessTicketManagementDto = wellnessTicketManagementService
+                .getByCenterIdAndWellnessTicketIdAndWellnessTicketIssuanceName(
+                        createWellnessTicketIssuanceAdminRequestV1.getCenterId(),
+                        savedWellnessTicketIssuanceDto.getWellnessTicketId(), savedWellnessTicketIssuanceDto.getName());
+        final List<Long> wellnessTicketIssuanceIdList = new ArrayList<>(
+                wellnessTicketManagementDto.getWellnessTicketIssuanceIdList());
         wellnessTicketIssuanceIdList.add(savedWellnessTicketIssuanceDto.getId());
         wellnessTicketManagementDto.setWellnessTicketIssuanceIdList(wellnessTicketIssuanceIdList);
         wellnessTicketManagementService.update(wellnessTicketManagementDto);
 
-        final WellnessTicketIssuanceHistoryDto wellnessTicketIssuanceHistoryDto = WellnessTicketIssuanceHistoryDto.builder()
+        final WellnessTicketIssuanceHistoryDto wellnessTicketIssuanceHistoryDto = WellnessTicketIssuanceHistoryDto
+                .builder()
                 .changedCnt(savedWellnessTicketIssuanceDto.getRemainingCnt())
                 .wellnessLectureId(null)
                 .reservationId(null)
@@ -123,7 +133,9 @@ public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIss
         wellnessTicketIssuanceHistoryService.create(wellnessTicketIssuanceHistoryDto);
     }
 
-    private static ZonedDateTime calcExprieDate(CreateWellnessTicketIssuanceAdminRequestV1 createWellnessTicketIssuanceAdminRequestV1, List<WellnessTicketExtensionDto> wellnessTicketExtensionDtoList) {
+    private static ZonedDateTime calcExprieDate(
+            CreateWellnessTicketIssuanceAdminRequestV1 createWellnessTicketIssuanceAdminRequestV1,
+            List<WellnessTicketExtensionDto> wellnessTicketExtensionDtoList) {
         final ZonedDateTime startDate = createWellnessTicketIssuanceAdminRequestV1.getStartDate();
         ZonedDateTime expireDate = createWellnessTicketIssuanceAdminRequestV1.getExpireDate();
 
@@ -142,14 +154,27 @@ public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIss
 
     @Override
     public List<WellnessTicketIssuanceAdminDto> getWellnessTicketIssuanceListByWellnessTicketId(Long wellnessTicketId) {
-        final List<WellnessTicketIssuanceDto> wellnessTicketIssuanceDtoList = wellnessTicketIssuanceService.getAllByWellnessTicketId(wellnessTicketId);
-        final List<Long> memberIdList = wellnessTicketIssuanceDtoList.stream().map(WellnessTicketIssuanceDto::getMemberId).distinct().toList();
+        final List<WellnessTicketIssuanceDto> wellnessTicketIssuanceDtoList = wellnessTicketIssuanceService
+                .getAllByWellnessTicketId(wellnessTicketId);
+        final List<Long> memberIdList = wellnessTicketIssuanceDtoList.stream()
+                .map(WellnessTicketIssuanceDto::getMemberId).distinct().toList();
         final List<MemberDto> memberDtoList = memberService.getAllByIdList(memberIdList);
 
-        return wellnessTicketIssuanceDtoList.stream().map(wellnessTicketIssuanceDto -> WellnessTicketIssuanceAdminDto.builder()
-                        .wellnessTicketIssuanceDto(wellnessTicketIssuanceDto)
-                        .memberDto(memberDtoList.stream().filter(memberDto -> memberDto.getId().equals(wellnessTicketIssuanceDto.getMemberId())).findFirst().orElse(null))
-                        .build())
+        return wellnessTicketIssuanceDtoList.stream()
+                .map(wellnessTicketIssuanceDto -> {
+                    MemberDto memberDto = memberDtoList.stream()
+                            .filter(m -> m.getId().equals(wellnessTicketIssuanceDto.getMemberId()))
+                            .findFirst()
+                            .orElse(null);
+                    if (memberDto == null) {
+                        return null;
+                    }
+                    return WellnessTicketIssuanceAdminDto.builder()
+                            .wellnessTicketIssuanceDto(wellnessTicketIssuanceDto)
+                            .memberDto(memberDto)
+                            .build();
+                })
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -166,29 +191,37 @@ public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIss
 
     @Transactional
     @Override
-    public void updateWellnessTicketIssuance(UpdateWellnessTicketIssuanceAdminRequestV1 updateWellnessTicketIssuanceAdminRequestV1) {
-        final WellnessTicketIssuanceDto wellnessTicketIssuanceDto = wellnessTicketIssuanceService.getById(updateWellnessTicketIssuanceAdminRequestV1.getId());
+    public void updateWellnessTicketIssuance(
+            UpdateWellnessTicketIssuanceAdminRequestV1 updateWellnessTicketIssuanceAdminRequestV1) {
+        final WellnessTicketIssuanceDto wellnessTicketIssuanceDto = wellnessTicketIssuanceService
+                .getById(updateWellnessTicketIssuanceAdminRequestV1.getId());
 
         if (!wellnessTicketIssuanceDto.getName().equals(updateWellnessTicketIssuanceAdminRequestV1.getName())) {
-            final WellnessTicketManagementDto wellnessTicketManagementDto = wellnessTicketManagementService.getByWellnessTicketIdAndWellnessTicketIssuanceName(wellnessTicketIssuanceDto.getWellnessTicketId(), updateWellnessTicketIssuanceAdminRequestV1.getName());
-            if(wellnessTicketManagementDto == null) {
+            final WellnessTicketManagementDto wellnessTicketManagementDto = wellnessTicketManagementService
+                    .getByWellnessTicketIdAndWellnessTicketIssuanceName(wellnessTicketIssuanceDto.getWellnessTicketId(),
+                            updateWellnessTicketIssuanceAdminRequestV1.getName());
+            if (wellnessTicketManagementDto == null) {
                 final WellnessTicketManagementDto newWellnessTicketManagementDto = WellnessTicketManagementDto.builder()
                         .centerId(wellnessTicketIssuanceDto.getCenterId())
                         .wellnessTicketId(wellnessTicketIssuanceDto.getWellnessTicketId())
                         .wellnessTicketIssuanceName(updateWellnessTicketIssuanceAdminRequestV1.getName())
                         .build();
                 wellnessTicketManagementService.create(newWellnessTicketManagementDto);
-            }else{
-                final List<Long> wellnessTicketIssuanceIdList = new ArrayList<>(wellnessTicketManagementDto.getWellnessTicketIssuanceIdList());
+            } else {
+                final List<Long> wellnessTicketIssuanceIdList = new ArrayList<>(
+                        wellnessTicketManagementDto.getWellnessTicketIssuanceIdList());
                 wellnessTicketIssuanceIdList.add(wellnessTicketIssuanceDto.getId());
                 wellnessTicketManagementDto.setWellnessTicketIssuanceIdList(wellnessTicketIssuanceIdList);
                 wellnessTicketManagementService.update(wellnessTicketManagementDto);
             }
         }
 
-        if (Objects.equals(wellnessTicketIssuanceDto.getRemainingCnt(), updateWellnessTicketIssuanceAdminRequestV1.getRemainingCnt())) {
-            final Integer changedCnt = updateWellnessTicketIssuanceAdminRequestV1.getRemainingCnt() - wellnessTicketIssuanceDto.getRemainingCnt();
-            final WellnessTicketIssuanceHistoryDto wellnessTicketIssuanceHistoryDto = WellnessTicketIssuanceHistoryDto.builder()
+        if (Objects.equals(wellnessTicketIssuanceDto.getRemainingCnt(),
+                updateWellnessTicketIssuanceAdminRequestV1.getRemainingCnt())) {
+            final Integer changedCnt = updateWellnessTicketIssuanceAdminRequestV1.getRemainingCnt()
+                    - wellnessTicketIssuanceDto.getRemainingCnt();
+            final WellnessTicketIssuanceHistoryDto wellnessTicketIssuanceHistoryDto = WellnessTicketIssuanceHistoryDto
+                    .builder()
                     .changedCnt(changedCnt)
                     .actionMemberId(updateWellnessTicketIssuanceAdminRequestV1.getActionMemberId())
                     .wellnessTicketIssuanceId(wellnessTicketIssuanceDto.getId())
@@ -203,7 +236,8 @@ public class WellnessTicketIssuanceAdminServiceImpl implements WellnessTicketIss
         wellnessTicketIssuanceDto.setType(updateWellnessTicketIssuanceAdminRequestV1.getType());
         wellnessTicketIssuanceDto.setStartDate(updateWellnessTicketIssuanceAdminRequestV1.getStartDate());
         wellnessTicketIssuanceDto.setExpireDate(updateWellnessTicketIssuanceAdminRequestV1.getExpireDate());
-        final Integer changedCnt = updateWellnessTicketIssuanceAdminRequestV1.getRemainingCnt() - wellnessTicketIssuanceDto.getRemainingCnt();
+        final Integer changedCnt = updateWellnessTicketIssuanceAdminRequestV1.getRemainingCnt()
+                - wellnessTicketIssuanceDto.getRemainingCnt();
         final Integer totalUsableCnt = wellnessTicketIssuanceDto.getTotalUsableCnt() + changedCnt;
         wellnessTicketIssuanceDto.setTotalUsableCnt(totalUsableCnt);
         wellnessTicketIssuanceDto.setRemainingCnt(updateWellnessTicketIssuanceAdminRequestV1.getRemainingCnt());

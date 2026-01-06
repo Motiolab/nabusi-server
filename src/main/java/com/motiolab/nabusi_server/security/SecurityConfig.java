@@ -27,7 +27,7 @@ public class SecurityConfig {
         private final CustomAuthResponseHandler customAuthResponseHandler;
         private final AppleSecretGenerator appleSecretGenerator;
 
-        @Value("${app.login.success-url:http://localhost:3000/login/success}")
+        @Value("${app.login.success-url:http://localhost:5173/login/success}")
         private String loginSuccessUrl;
 
         @Bean
@@ -68,7 +68,7 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 final CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "https://nabusi.com",
+                configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173", "https://nabusi.com",
                                 "https://appleid.apple.com", "http://localhost:8080", "http://127.0.0.1:3000",
                                 "http://10.0.2.2:3000",
                                 "https://admin.nabusi.com"));

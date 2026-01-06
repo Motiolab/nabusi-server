@@ -106,6 +106,7 @@ public class MemberMobileServiceImpl implements MemberMobileService {
                 kakaoUserService.patch(kakaoUserDto);
                 String mobilePrefix = convertToKorean(memberDto.getMobile());
                 memberService.updateMobile(memberId, mobilePrefix + "-" + generateRandomNumber());
+                memberService.delete(memberId);
             }
             case "naver" -> {
                 String randomValue = generateRandomNumber();
@@ -119,6 +120,7 @@ public class MemberMobileServiceImpl implements MemberMobileService {
                 naverUserService.patchById(naverUserDto.getId(), naverUserDto);
                 String mobilePrefix = convertToKorean(memberDto.getMobile());
                 memberService.updateMobile(memberId, mobilePrefix + "-" + randomValue);
+                memberService.delete(memberId);
             }
             case "apple" -> {
                 String randomValue = generateRandomNumber();
@@ -128,6 +130,7 @@ public class MemberMobileServiceImpl implements MemberMobileService {
                 appleUserService.patchById(appleUserDto.getId(), appleUserDto);
                 String mobilePrefix = convertToKorean(memberDto.getMobile());
                 memberService.updateMobile(memberId, mobilePrefix + "-" + randomValue);
+                memberService.delete(memberId);
             }
         }
         return true;

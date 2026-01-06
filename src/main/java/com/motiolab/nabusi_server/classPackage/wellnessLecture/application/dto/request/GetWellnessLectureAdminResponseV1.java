@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Builder
 @Getter
@@ -22,4 +23,5 @@ public class GetWellnessLectureAdminResponseV1 {
     private ZonedDateTime startDateTime;
     private ZonedDateTime endDateTime;
     private Boolean isDelete;
+    private List<String> lectureImageUrlList;
 }
