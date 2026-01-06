@@ -14,17 +14,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class WellnessClassServiceImpl implements WellnessClassService{
+public class WellnessClassServiceImpl implements WellnessClassService {
     private final WellnessClassRepository wellnessClassRepository;
-
-    @Override
-    public List<WellnessClassDto> getAllByCenterId(Long centerId) {
-        final List<WellnessClassEntity> wellnessClassEntityList = wellnessClassRepository.findAllByCenterId(centerId);
-
-        return wellnessClassEntityList.stream()
-                .map(WellnessClassDto::from)
-                .toList();
-    }
 
     @Override
     public WellnessClassDto getByCenterIdAndName(Long centerId, String name) {
@@ -73,8 +64,7 @@ public class WellnessClassServiceImpl implements WellnessClassService{
                             wellnessClassDto.getTeacherId(),
                             wellnessClassDto.getWellnessLectureTypeId(),
                             wellnessClassDto.getIsDelete(),
-                            wellnessClassDto.getWellnessTicketManagementIdList()
-                    );
+                            wellnessClassDto.getWellnessTicketManagementIdList());
                     return true;
                 })
                 .orElseThrow(() -> new NotFoundException(WellnessLectureEntity.class, wellnessClassDto.getId()));
@@ -82,16 +72,18 @@ public class WellnessClassServiceImpl implements WellnessClassService{
 
     @Override
     public List<WellnessClassDto> getAllById(List<Long> idList) {
-         List<WellnessClassEntity> wellnessClassEntityList = wellnessClassRepository.findAllById(idList);
-         return wellnessClassEntityList.stream()
-                 .map(WellnessClassDto::from)
-                 .toList();
+        List<WellnessClassEntity> wellnessClassEntityList = wellnessClassRepository.findAllById(idList);
+        return wellnessClassEntityList.stream()
+                .map(WellnessClassDto::from)
+                .toList();
     }
 
     @Override
     public List<WellnessClassDto> getAllByWellnessTicketManagementIdListIn(List<Long> wellnessTicketManagementIdList) {
-        final String wellnessTicketManagementIdListString = wellnessTicketManagementIdList.stream().map(String::valueOf).collect(Collectors.joining("|"));
-        return wellnessClassRepository.findAllByIssuedWellnessTicketManageIdListFindInSet(wellnessTicketManagementIdListString)
+        final String wellnessTicketManagementIdListString = wellnessTicketManagementIdList.stream().map(String::valueOf)
+                .collect(Collectors.joining("|"));
+        return wellnessClassRepository
+                .findAllByIssuedWellnessTicketManageIdListFindInSet(wellnessTicketManagementIdListString)
                 .stream()
                 .map(WellnessClassDto::from)
                 .toList();
@@ -100,12 +92,20 @@ public class WellnessClassServiceImpl implements WellnessClassService{
     @Override
     public WellnessClassDto getById(Long id) {
         return wellnessClassRepository.findById(id)
-                 .map(WellnessClassDto::from)
-                 .orElse(null);
+                .map(WellnessClassDto::from)
+                .orElse(null);
     }
 
     @Override
     public List<Long> getDistinctTeacherIds() {
         return wellnessClassRepository.findDistinctTeacherIds();
+    }
+
+    @Override
+    public List<WellnessClassDto> getAllByCenterIdAndIsDeleteFalse(Long centerId) {
+        return wellnessClassRepository.findAllByCenterIdAndIsDeleteFalse(centerId)
+                .stream()
+                .map(WellnessClassDto::from)
+                .toList();
     }
 }

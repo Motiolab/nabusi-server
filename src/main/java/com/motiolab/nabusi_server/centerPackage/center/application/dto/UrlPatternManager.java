@@ -42,6 +42,9 @@ public class UrlPatternManager {
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/name/{centerId}", "GET", "수업 생성 - 그룹 수업 조회", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/{centerId}", "POST", "그룹 수업 생성", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/detail/{centerId}", "GET", "그룹 수업 상세 조회", centerId));
+        urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/detail/with-lecture/{centerId}", "GET", "그룹 수업 상세 & 수업 리스트 조회", centerId));
+        urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/all/{centerId}", "GET", "그룹 수업 리스트 조회", centerId));
+
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture-type/name/{centerId}", "GET", "수업 종류 리스트 조회", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture-type/{centerId}", "POST", "수업 종류 리스트 생성", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/member/list/add/teacher/{centerId}", "GET", "코치 등록을 위한 멤버 리스트 조회", centerId));

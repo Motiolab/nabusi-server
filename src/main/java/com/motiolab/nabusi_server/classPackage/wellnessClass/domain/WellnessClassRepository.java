@@ -18,4 +18,6 @@ public interface WellnessClassRepository extends JpaRepository<WellnessClassEnti
 
     @Query("SELECT DISTINCT w.teacherId FROM WellnessClassEntity w WHERE w.isDelete = false")
     List<Long> findDistinctTeacherIds();
+
+    List<WellnessClassEntity> findAllByCenterIdAndIsDeleteFalse(Long centerId);
 }

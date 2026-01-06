@@ -27,7 +27,7 @@ public class WellnessClassMobileServiceImpl implements WellnessClassMobileServic
 
     @Override
     public List<WellnessClassMobileDto> getAllWellnessClassListByCenterId(Long centerId) {
-        final List<WellnessClassDto> wellnessClassDtoList = wellnessClassService.getAllByCenterId(centerId);
+        final List<WellnessClassDto> wellnessClassDtoList = wellnessClassService.getAllByCenterIdAndIsDeleteFalse(centerId);
         final List<Long> wellnessClassIdList = wellnessClassDtoList.stream().map(WellnessClassDto::getId).toList();
         final List<Long> teacherIdList = wellnessClassDtoList.stream().map(WellnessClassDto::getTeacherId).distinct().toList();
         final List<Long> wellnessLectureTypeIdList = wellnessClassDtoList.stream().map(WellnessClassDto::getWellnessLectureTypeId).distinct().toList();
