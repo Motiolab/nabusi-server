@@ -11,6 +11,7 @@ import com.motiolab.nabusi_server.classPackage.wellnessClass.application.dto.res
 import com.motiolab.nabusi_server.classPackage.wellnessClass.application.dto.response.GetWellnessClassNameByCenterIdAdminResponseV1;
 import com.motiolab.nabusi_server.classPackage.wellnessLectureType.application.dto.WellnessLectureTypeDto;
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
+import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -156,9 +157,16 @@ public class WellnessClassAdminController {
                                                 .endDateTime(extension.getWellnessLectureDto().getEndDateTime())
                                                 .maxReservationCnt(extension.getWellnessLectureDto()
                                                                 .getMaxReservationCnt())
-                                                .currentReservationCnt(extension.getReservationDtoList().size())
+                                                .currentReservationCnt((int) extension.getReservationDtoList().stream()
+                                                                .filter(reservationDto -> !List.of(
+                                                                                ReservationStatus.MEMBER_CANCELED_RESERVATION,
+                                                                                ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND,
+                                                                                ReservationStatus.ADMIN_CANCELED_RESERVATION)
+                                                                                .contains(reservationDto.getStatus()))
+                                                                .count())
                                                 .isDelete(extension.getWellnessLectureDto().getIsDelete())
-                                                .isPast(extension.getWellnessLectureDto().getEndDateTime().isBefore(now))
+                                                .isPast(extension.getWellnessLectureDto().getEndDateTime()
+                                                                .isBefore(now))
                                                 .build())
                                 .toList();
 
@@ -195,4 +203,11 @@ public class WellnessClassAdminController {
 
                 return ResponseEntity.ok(response);
         }
+
+        @DeleteMapping("/v1/admin/wellness-class/{centerId}")
+        public ResponseEntity<Boolean> deleteWellnessClassById(@PathVariable Long centerId, @RequestParam Long id) {
+                wellnessClassAdminService.deleteWellnessClassById(id, centerId);
+                return ResponseEntity.ok(true);
+        }
+
 }

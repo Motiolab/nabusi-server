@@ -10,15 +10,18 @@ import com.motiolab.nabusi_server.exception.customException.ExistsAlreadyExcepti
 import com.motiolab.nabusi_server.exception.customException.NotFoundException;
 import com.motiolab.nabusi_server.reservation.application.ReservationService;
 import com.motiolab.nabusi_server.reservation.application.dto.ReservationDto;
+import com.motiolab.nabusi_server.reservation.enums.ReservationStatus;
 import com.motiolab.nabusi_server.teacher.application.TeacherService;
 import com.motiolab.nabusi_server.teacher.application.dto.TeacherDto;
 import com.motiolab.nabusi_server.ticketPackage.wellnessTicket.application.WellnessTicketService;
 import com.motiolab.nabusi_server.ticketPackage.wellnessTicket.application.dtos.WellnessTicketDto;
 import com.motiolab.nabusi_server.ticketPackage.wellnessTicketManagement.application.WellnessTicketManagementService;
 import com.motiolab.nabusi_server.ticketPackage.wellnessTicketManagement.application.dto.WellnessTicketManagementDto;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -60,8 +63,17 @@ public class WellnessClassAdminServiceImpl implements WellnessClassAdminService 
         public void createWellnessClassByCenterIdAndName(Long registerId, Long centerId, String wellnessClassName) {
                 final WellnessClassDto existsWellnessClassDto = wellnessClassService.getByCenterIdAndName(centerId,
                                 wellnessClassName);
-                if (existsWellnessClassDto != null)
+
+                if (existsWellnessClassDto != null) {
+                        if (existsWellnessClassDto.getIsDelete()) {
+                                // 삭제되었던 데이터면 복구
+                                existsWellnessClassDto.setIsDelete(false);
+                                existsWellnessClassDto.setRegisterId(registerId);
+                                wellnessClassService.update(existsWellnessClassDto);
+                                return;
+                        }
                         throw new ExistsAlreadyException(WellnessClassDto.class, existsWellnessClassDto.getId());
+                }
 
                 final WellnessClassDto newWellnessClassDto = WellnessClassDto.builder()
                                 .name(wellnessClassName)
@@ -244,5 +256,47 @@ public class WellnessClassAdminServiceImpl implements WellnessClassAdminService 
                                                         .wellnessLectureExtensionList(wellnessLectureExtensionList)
                                                         .build();
                                 }).toList();
+        }
+
+        @Transactional
+        @Override
+        public void deleteWellnessClassById(Long id, Long centerId) {
+                final WellnessClassDto wellnessClassDto = wellnessClassService.getByIdAndCenterId(id, centerId);
+                if (wellnessClassDto == null) {
+                        throw new NotFoundException(WellnessClassDto.class, id);
+                }
+
+                final List<WellnessLectureDto> wellnessLectureDtoList = wellnessLectureService
+                                .getAllByWellnessClassIdList(List.of(id));
+                final List<Long> lectureIdList = wellnessLectureDtoList.stream().map(WellnessLectureDto::getId)
+                                .toList();
+
+                final List<ReservationDto> reservationDtoList = reservationService
+                                .getAllByWellnessLectureIdList(lectureIdList);
+
+                final boolean hasActiveReservation = reservationDtoList.stream()
+                                .anyMatch(reservationDto -> !List.of(
+                                                ReservationStatus.MEMBER_CANCELED_RESERVATION,
+                                                ReservationStatus.MEMBER_CANCELED_RESERVATION_REFUND,
+                                                ReservationStatus.ADMIN_CANCELED_RESERVATION)
+                                                .contains(reservationDto.getStatus()));
+
+                if (hasActiveReservation) {
+                        throw new RuntimeException(
+                                        "Error: Cannot delete class with active reservations in its lectures.");
+                }
+
+                // 수업 삭제
+                wellnessClassDto.setIsDelete(true);
+                wellnessClassService.update(wellnessClassDto);
+
+                // 종속된 강의 삭제 (이미 지난 수업, 이미 삭제된 수업 제외)
+                final ZonedDateTime now = ZonedDateTime.now();
+                wellnessLectureDtoList.stream()
+                                .filter(lecture -> !lecture.getIsDelete() && lecture.getStartDateTime().isAfter(now))
+                                .forEach(lecture -> {
+                                        lecture.setIsDelete(true);
+                                        wellnessLectureService.update(lecture);
+                                });
         }
 }

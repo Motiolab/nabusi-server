@@ -44,6 +44,8 @@ public class UrlPatternManager {
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/detail/{centerId}", "GET", "그룹 수업 상세 조회", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/detail/with-lecture/{centerId}", "GET", "그룹 수업 상세 & 수업 리스트 조회", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/all/{centerId}", "GET", "그룹 수업 리스트 조회", centerId));
+        urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-class/{centerId}", "DELETE", "그룹 수업 삭제", centerId));
+
 
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture-type/name/{centerId}", "GET", "수업 종류 리스트 조회", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture-type/{centerId}", "POST", "수업 종류 리스트 생성", centerId));
@@ -54,6 +56,9 @@ public class UrlPatternManager {
 
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture/{centerId}", "DELETE", "수업 폐강", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture/{centerId}", "PUT", "수업 수정", centerId));
+        urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture-list/{centerId}", "PUT", "수업 리스트 수정", centerId));
+        urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture-list/{centerId}", "DELETE", "수업 리스트 삭제", centerId));
+
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-lecture/restore/{centerId}", "PATCH", "수업 복구", centerId));
         urlPatternDtoList.add(UrlPatternDto.create("ALL_CLASS_MANAGE", "/v1/admin/wellness-ticket-management/name/{centerId}", "GET", "수업 생성 - 정기권 조회", centerId));
 

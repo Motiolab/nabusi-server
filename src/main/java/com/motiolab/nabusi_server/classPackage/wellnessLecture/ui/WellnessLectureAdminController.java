@@ -3,10 +3,7 @@ package com.motiolab.nabusi_server.classPackage.wellnessLecture.ui;
 import com.motiolab.nabusi_server.argumentResolver.MemberId;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.WellnessLectureAdminService;
 import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.WellnessLectureAdminDto;
-import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.request.CreateWellnessLectureListWithWellnessClassAdminRequestV1;
-import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.request.GetWellnessLectureAdminResponseV1;
-import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.request.GetWellnessLectureDetailAdminResponseV1;
-import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.request.UpdateWellnessLectureAdminRequestV1;
+import com.motiolab.nabusi_server.classPackage.wellnessLecture.application.dto.request.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -125,6 +122,20 @@ public class WellnessLectureAdminController {
             @RequestBody UpdateWellnessLectureAdminRequestV1 updateWellnessLectureAdminRequestV1) {
         updateWellnessLectureAdminRequestV1.setCenterId(centerId);
         wellnessLectureAdminService.updateWellnessLecture(updateWellnessLectureAdminRequestV1);
+        return ResponseEntity.ok(true);
+    }
+
+    @PutMapping("/v1/admin/wellness-lecture-list/{centerId}")
+    public ResponseEntity<Boolean> updateWellnessLectureList(@PathVariable Long centerId,
+                                                         @RequestBody UpdateWellnessLectureListAdminRequestV1 updateWellnessLectureListAdminRequestV1) {
+        updateWellnessLectureListAdminRequestV1.setCenterId(centerId);
+        wellnessLectureAdminService.updateWellnessLectureList(updateWellnessLectureListAdminRequestV1);
+        return ResponseEntity.ok(true);
+    }
+
+    @DeleteMapping("/v1/admin/wellness-lecture-list/{centerId}")
+    public ResponseEntity<Boolean> deleteWellnessLectureListByIdList(@PathVariable Long centerId, @RequestBody List<Long> idList) {
+        wellnessLectureAdminService.deleteWellnessLectureListById(idList);
         return ResponseEntity.ok(true);
     }
 }

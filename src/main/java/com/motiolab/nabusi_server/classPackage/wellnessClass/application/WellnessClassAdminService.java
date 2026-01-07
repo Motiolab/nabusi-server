@@ -14,4 +14,5 @@ public interface WellnessClassAdminService {
     List<WellnessClassAdminDto> getWellnessClassAllByCenterId(Long centerId);
 
     List<WellnessClassAdminDto> getWellnessClassDetailWithLectureByCenterId(Long centerId);
+    void deleteWellnessClassById(Long id, Long centerId);
 }
